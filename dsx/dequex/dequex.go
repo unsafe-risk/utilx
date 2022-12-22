@@ -2,8 +2,10 @@ package dequex
 
 import "sync"
 
+const nodeBufferSize = 64
+
 type node[T any] struct {
-	data  [16]T
+	data  [nodeBufferSize]T
 	start int
 	end   int
 	next  *node[T]
@@ -38,9 +40,9 @@ func (t *Deque[T]) PushFront(data T) {
 	}
 	if t.head.start == 0 {
 		n := t.pool.Get().(*node[T])
-		n.data[15] = data
-		n.start = 15
-		n.end = 16
+		n.data[nodeBufferSize-1] = data
+		n.start = nodeBufferSize - 1
+		n.end = nodeBufferSize
 		n.next = t.head
 		t.head.prev = n
 		t.head = n
@@ -60,7 +62,7 @@ func (t *Deque[T]) PushBack(data T) {
 		t.tail = n
 		return
 	}
-	if t.tail.end == 16 {
+	if t.tail.end == nodeBufferSize {
 		n := t.pool.Get().(*node[T])
 		n.data[0] = data
 		n.start = 0
