@@ -1,51 +1,82 @@
 package sleepx
 
 import (
+	"context"
+	"sync/atomic"
 	"time"
 
 	"github.com/unsafe-risk/utilx/timex"
 )
 
-var (
+type Sleeper struct {
 	// wakeup signal
-	wakeup chan struct{} = make(chan struct{}, 1)
-)
+	ctx    context.Context
+	cancel context.CancelFunc
 
-// sleep for a while && wakeup by signal
-func SleepFor(d time.Duration) {
+	// slept
+	slept atomic.Bool
+}
+
+func New() *Sleeper {
+	ctx, cancel := context.WithCancel(context.Background())
+	return &Sleeper{
+		ctx:    ctx,
+		cancel: cancel,
+		slept:  atomic.Bool{},
+	}
+}
+
+func (s *Sleeper) SleepFor(d time.Duration) bool {
+	if !s.slept.CompareAndSwap(false, true) {
+		return false
+	}
+	defer s.slept.Store(false)
+	done := s.ctx.Done()
 	for {
 		select {
 		case <-time.After(time.Duration(d) * time.Second):
-			return
-		case <-wakeup:
-			return
+			return true
+		case <-done:
+			return true
 		}
 	}
 }
 
-// sleep until a time && wakeup by signal
-func SleepUntil(t time.Time) {
+func (s *Sleeper) SleepUntil(t time.Time) bool {
+	if !s.slept.CompareAndSwap(false, true) {
+		return false
+	}
+	defer s.slept.Store(false)
+	done := s.ctx.Done()
 	for {
 		select {
 		case <-time.After(t.Sub(timex.Now())):
-			return
-		case <-wakeup:
-			return
+			return true
+		case <-done:
+			return true
 		}
 	}
 }
 
-// sleep forever && wakeup by signal
-func SleepForever() {
+func (s *Sleeper) SleepForever() bool {
+	if !s.slept.CompareAndSwap(false, true) {
+		return false
+	}
+	defer s.slept.Store(false)
+	done := s.ctx.Done()
 	for {
 		select {
-		case <-wakeup:
-			return
+		case <-done:
+			return true
 		}
 	}
 }
 
-// signal to wakeup
-func Wakeup() {
-	wakeup <- struct{}{}
+func (s *Sleeper) Wakeup() bool {
+	if !s.slept.Load() {
+		return false
+	}
+	s.cancel()
+	s.ctx, s.cancel = context.WithCancel(context.Background())
+	return true
 }
