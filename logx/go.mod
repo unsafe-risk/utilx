@@ -1,3 +1,3 @@
 module github.com/unsafe-risk/utilx/logx
 
-go 1.20
+go 1.18

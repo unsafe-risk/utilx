@@ -1,3 +1,3 @@
-module github.com/unsafe-risk/timex/logx
+module github.com/unsafe-risk/utilx/timex
 
-go 1.20
+go 1.18
