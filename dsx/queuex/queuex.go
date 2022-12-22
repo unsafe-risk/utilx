@@ -37,24 +37,18 @@ func (t *Queue[T]) Enqueue(data T) {
 
 func (t *Queue[T]) Dequeue() (data T, ok bool) {
 	if t.head == nil {
-		ok = false
 		return
 	}
-	data = t.head.data
-	ok = true
 	t.pool.Put(t.head)
 	t.head = t.head.next
-	return
+	return t.head.data, true
 }
 
 func (t *Queue[T]) Peek() (data T, ok bool) {
 	if t.head == nil {
-		ok = false
 		return
 	}
-	data = t.head.data
-	ok = true
-	return
+	return t.head.data, true
 }
 
 func (t *Queue[T]) IsEmpty() bool {
