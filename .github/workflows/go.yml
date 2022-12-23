@@ -63,7 +63,7 @@ jobs:
         go-version: 1.19
 
     - name: Build
-      run: go build -v ${{ matrix.package }}
+      run: go build -v ${{ matrix.package }}/...
 
     - name: Test
-      run: go test -v ${{ matrix.package }}
+      run: go test -v ${{ matrix.package }}/...
