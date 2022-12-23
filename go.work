@@ -25,9 +25,9 @@ use (
     ./encodex
     ./encodex/gobx
     ./encodex/jsonx
+    ./iox
+    ./iox/usingx
     ./logx
-    ./logicx
-    ./logicx/usingx
     ./nilx
     ./nilx/optionx
     ./nilx/resultx
@@ -37,3 +37,4 @@ use (
     ./timex/sleepx
     ./timex/truncatex
 )
+ 
