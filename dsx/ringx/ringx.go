@@ -21,36 +21,36 @@ func New[T any](cap int64) *Ring[T] {
 	}
 }
 
-func (t *Ring[T]) Enqueue(data T) error {
-	if t.IsFull() == true {
-		return fmt.Errorf("Queue is full | cap - %d", t.cap)
+func (r *Ring[T]) Enqueue(data T) error {
+	if r.IsFull() == true {
+		return fmt.Errorf("Queue is full | cap - %d", r.cap)
 	}
-	t.data[t.tail] = data
-	t.tail = (t.tail + 1) % t.cap
+	r.data[r.tail] = data
+	r.tail = (r.tail + 1) % r.cap
 	return nil
 }
 
-func (t *Ring[T]) Dequeue() (data T, ok bool) {
-	if t.IsEmpty() {
+func (r *Ring[T]) Dequeue() (data T, ok bool) {
+	if r.IsEmpty() {
 		return
 	}
-	data = t.data[t.head]
-	t.head = (t.head + 1) % t.cap
+	data = r.data[r.head]
+	r.head = (r.head + 1) % r.cap
 	return data, true
 }
 
-func (t *Ring[T]) Head() T {
-	return t.data[t.head]
+func (r *Ring[T]) Head() T {
+	return r.data[r.head]
 }
 
-func (t *Ring[T]) Cap() int64 {
-	return t.cap
+func (r *Ring[T]) Cap() int64 {
+	return r.cap
 }
 
-func (t *Ring[T]) IsEmpty() bool {
-	return t.head == t.tail
+func (r *Ring[T]) IsEmpty() bool {
+	return r.head == r.tail
 }
 
-func (t *Ring[T]) IsFull() bool {
-	return t.head == (t.tail+1)%t.cap
+func (r *Ring[T]) IsFull() bool {
+	return r.head == (r.tail+1)%r.cap
 }
