@@ -4,6 +4,7 @@ use (
     ./algox
     ./cryptox
     ./dsx
+    ./encodex
     ./logx
     ./nilx
     ./osx
