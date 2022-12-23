@@ -1,0 +1,10 @@
+enum Parameter {
+    Argon2ID_High,
+    Argon2ID_Low
+}
+
+struct PasswordHash {
+    Parameter param;
+    bytes salt;
+    bytes hash;
+}
