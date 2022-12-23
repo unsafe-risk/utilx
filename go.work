@@ -1,9 +1,11 @@
 go 1.18
 
 use (
+    ./algox
+    ./cryptox
     ./dsx
     ./logx
+    ./nilx
     ./osx
     ./timex
-    ./nilx
 )
