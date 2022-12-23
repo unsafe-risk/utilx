@@ -43,7 +43,7 @@ func hash_len(param internal.Parameter) uint32 {
 var ErrReadSaltFailed = errors.New("read salt failed")
 var ErrInvalidSecurityLevel = errors.New("invalid security level")
 
-func PassHash(password []byte, sl SecurityLevel) ([]byte, error) {
+func Hash(password []byte, sl SecurityLevel) ([]byte, error) {
 	var salt []byte
 
 	switch sl {
@@ -89,8 +89,8 @@ func PassHash(password []byte, sl SecurityLevel) ([]byte, error) {
 	return nil, ErrInvalidSecurityLevel
 }
 
-func PassHashBase64(password []byte, sl SecurityLevel) (string, error) {
-	hash, err := PassHash(password, sl)
+func HashBase64(password []byte, sl SecurityLevel) (string, error) {
+	hash, err := Hash(password, sl)
 	if err != nil {
 		return "", err
 	}
@@ -101,7 +101,7 @@ var ErrInvalidPassHash = errors.New("invalid passhash")
 var ErrUnknownAlgorithm = errors.New("unknown algorithm")
 var ErrHashMismatch = errors.New("hash mismatch")
 
-func PassHashVerify(password []byte, phash []byte) error {
+func Verify(password []byte, phash []byte) error {
 	data := internal.PasswordHash(phash)
 	if !data.Vstruct_Validate() {
 		return ErrInvalidPassHash
@@ -123,4 +123,12 @@ func PassHashVerify(password []byte, phash []byte) error {
 	}
 
 	return nil
+}
+
+func VerifyBase64(password []byte, phash string) error {
+	hash, err := base64.RawURLEncoding.DecodeString(phash)
+	if err != nil {
+		return err
+	}
+	return Verify(password, hash)
 }
