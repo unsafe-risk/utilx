@@ -30,6 +30,7 @@ use (
     ./encodex/gobx
     ./encodex/jsonx
     ./iox
+	./iox/managerx/closex
     ./iox/usingx
     ./logx
     ./nilx
