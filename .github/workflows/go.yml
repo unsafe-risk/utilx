@@ -21,6 +21,7 @@ jobs:
           ./cryptox/aesx,
           ./cryptox/bcryptx,
           ./cryptox/hmacx,
+          ./cryptox/passhashx,
           ./cryptox/shax,
           ./debugx,
           ./debugx/errorx,
