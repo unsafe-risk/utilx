@@ -39,4 +39,5 @@ use (
     ./timex/intersectionx
     ./timex/sleepx
     ./timex/truncatex
+    .
 )
