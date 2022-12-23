@@ -23,34 +23,34 @@ func New[T any]() *Queue[T] {
 	}
 }
 
-func (t *Queue[T]) Enqueue(data T) {
-	n := t.pool.Get().(*node[T])
+func (q *Queue[T]) Enqueue(data T) {
+	n := q.pool.Get().(*node[T])
 	n.data = data
-	if t.head == nil {
-		t.head = n
-		t.tail = n
+	if q.head == nil {
+		q.head = n
+		q.tail = n
 		return
 	}
-	t.tail.next = n
-	t.tail = n
+	q.tail.next = n
+	q.tail = n
 }
 
-func (t *Queue[T]) Dequeue() (data T, ok bool) {
-	if t.head == nil {
+func (q *Queue[T]) Dequeue() (data T, ok bool) {
+	if q.head == nil {
 		return
 	}
-	t.pool.Put(t.head)
-	t.head = t.head.next
-	return t.head.data, true
+	q.pool.Put(q.head)
+	q.head = q.head.next
+	return q.head.data, true
 }
 
-func (t *Queue[T]) Peek() (data T, ok bool) {
-	if t.head == nil {
+func (q *Queue[T]) Peek() (data T, ok bool) {
+	if q.head == nil {
 		return
 	}
-	return t.head.data, true
+	return q.head.data, true
 }
 
-func (t *Queue[T]) IsEmpty() bool {
-	return t.head == nil
+func (q *Queue[T]) IsEmpty() bool {
+	return q.head == nil
 }
