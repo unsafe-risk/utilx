@@ -11,6 +11,48 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [
+          ./algox,
+          ./algox/searchx,
+          ./algox/sortx,
+          ./cryptox,
+          ./cryptox/aesx,
+          ./cryptox/bcryptx,
+          ./cryptox/hmacx,
+          ./cryptox/shax,
+          ./debugx,
+          ./debugx/errorx,
+          ./debugx/safex,
+          ./dsx,
+          ./dsx/dequex,
+          ./dsx/listx,
+          ./dsx/mapx,
+          ./dsx/mapx/ordmapx,
+          ./dsx/mapx/syncmapx,
+          ./dsx/mapx/treemapx,
+          ./dsx/queuex,
+          ./dsx/ringx,
+          ./dsx/stackx,
+          ./dsx/treex,
+          ./dsx/treex/btreex,
+          ./dsx/treex/rbtreex,
+          ./encodex,
+          ./encodex/gobx,
+          ./encodex/jsonx,
+          ./iox,
+          ./iox/usingx,
+          ./logx,
+          ./nilx,
+          ./nilx/optionx,
+          ./nilx/resultx,
+          ./osx,
+          ./timex,
+          ./timex/intersectionx,
+          ./timex/sleepx,
+          ./timex/truncatex,
+        ]
     steps:
     - uses: actions/checkout@v3
 
@@ -20,7 +62,7 @@ jobs:
         go-version: 1.19
 
     - name: Build
-      run: go build -v ./...
+      run: go build -v ${{ matrix.package }}
 
     - name: Test
-      run: go test -v ./...
+      run: go test -v ${{ matrix.package }}
