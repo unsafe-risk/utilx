@@ -1,12 +1,11 @@
 package usingx
 
 import (
-	"errors"
 	"io"
 )
 
-func Close(closers ...io.Closer) func(func()) error {
-	return func(f func()) (err error) {
+func Close(closers ...io.Closer) func(func()) []error {
+	return func(f func()) (err []error) {
 		errs := []error(nil)
 		defer func() {
 			for _, closer := range closers {
@@ -15,7 +14,7 @@ func Close(closers ...io.Closer) func(func()) error {
 				}
 			}
 			if len(errs) > 0 {
-				err = errors.Join(errs...)
+				err = errs
 			}
 		}()
 		f()
