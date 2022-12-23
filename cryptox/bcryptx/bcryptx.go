@@ -12,9 +12,13 @@ const (
 	DefMaxLen = 72
 )
 
+var (
+	ErrPasswordTooLong = fmt.Errorf("pw len exceed | pw len must be less than %v", DefMaxLen)
+)
+
 func Encrypt(pw []byte) ([]byte, error) {
 	if len(pw) > DefMaxLen {
-		return nil, fmt.Errorf("pw len exceed | pw len must be less than %v", DefMaxLen)
+		return nil, ErrPasswordTooLong
 	}
 	hash, err := bcrypt.GenerateFromPassword(pw, bcrypt.DefaultCost)
 	if err != nil {
