@@ -9,6 +9,14 @@ import (
 	"github.com/unsafe-risk/utilx/cryptox/passhashx/internal"
 )
 
+var (
+	ErrInvalidPassHash      = errors.New("invalid passhash")
+	ErrUnknownAlgorithm     = errors.New("unknown algorithm")
+	ErrHashMismatch         = errors.New("hash mismatch")
+	ErrReadSaltFailed       = errors.New("read salt failed")
+	ErrInvalidSecurityLevel = errors.New("invalid security level")
+)
+
 const PASSHASH_VERSION = 1
 
 type SecurityLevel uint16
@@ -39,9 +47,6 @@ func hash_len(param internal.Parameter) uint32 {
 
 	return 32
 }
-
-var ErrReadSaltFailed = errors.New("read salt failed")
-var ErrInvalidSecurityLevel = errors.New("invalid security level")
 
 func Hash(password []byte, sl SecurityLevel) ([]byte, error) {
 	var salt []byte
@@ -96,10 +101,6 @@ func HashBase64(password []byte, sl SecurityLevel) (string, error) {
 	}
 	return base64.RawURLEncoding.EncodeToString(hash), nil
 }
-
-var ErrInvalidPassHash = errors.New("invalid passhash")
-var ErrUnknownAlgorithm = errors.New("unknown algorithm")
-var ErrHashMismatch = errors.New("hash mismatch")
 
 func Verify(password []byte, phash []byte) error {
 	data := internal.PasswordHash(phash)
