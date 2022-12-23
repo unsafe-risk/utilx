@@ -9,6 +9,9 @@ use (
     ./cryptox/bcryptx
     ./cryptox/hmacx
     ./cryptox/shax
+    ./debugx
+    ./debugx/errorx
+    ./debugx/safex
     ./dsx
     ./dsx/dequex
     ./dsx/listx
