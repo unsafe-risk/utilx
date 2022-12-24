@@ -1,0 +1,19 @@
+'Data Structure':
+- 'dsx/*'
+- 'dsx/**/*'
+
+Crypto:
+- 'cryptox/*'
+- 'cryptox/*/**'
+
+Tool:
+- 'cmd/*'
+- 'cmd/**/*'
+
+Encoding:
+- 'encodex/*'
+- 'encodex/**/*'
+
+Sync:
+- 'syncx/*'
+- 'syncx/**/*;
