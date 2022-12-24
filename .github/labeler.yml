@@ -16,4 +16,4 @@ Encoding:
 
 Sync:
 - 'syncx/*'
-- 'syncx/**/*;
+- 'syncx/**/*'
