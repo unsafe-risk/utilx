@@ -1,6 +1,12 @@
 package dequex
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/unsafe-risk/utilx/dsx"
+)
+
+var _ = (dsx.Deque[int])(&Deque[int]{})
 
 const nodeBufferSize = 64
 
