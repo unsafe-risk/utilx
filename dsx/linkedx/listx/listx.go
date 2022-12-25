@@ -1,6 +1,10 @@
 package listx
 
-import "github.com/unsafe-risk/utilx/dsx"
+import (
+	"sync"
+
+	"github.com/unsafe-risk/utilx/dsx"
+)
 
 type node[T any] struct {
 	data T
@@ -13,16 +17,24 @@ type List[T any] struct {
 	head   *node[T]
 	tail   *node[T]
 	length int
+	pool   *sync.Pool
 }
 
 func New[T any]() *List[T] {
-	return &List[T]{}
+	return &List[T]{
+		pool: &sync.Pool{
+			New: func() interface{} {
+				return new(node[T])
+			},
+		},
+	}
 }
 
 func (l *List[T]) Append(data T) {
 	l.length++
-	n := &node[T]{}
+	n := l.pool.Get().(*node[T])
 	n.data = data
+	n.next = nil
 	if l.tail == nil {
 		l.head = n
 		l.tail = n
@@ -34,8 +46,9 @@ func (l *List[T]) Append(data T) {
 
 func (l *List[T]) Insert(index int, data T) {
 	l.length++
-	n := &node[T]{}
+	n := l.pool.Get().(*node[T])
 	n.data = data
+	n.next = nil
 	if index == 0 {
 		n.next = l.head
 		l.head = n
@@ -64,6 +77,7 @@ func (l *List[T]) Remove(index int) (rs T, ok bool) {
 			return
 		}
 		rs = l.head.data
+		l.pool.Put(l.head)
 		l.head = l.head.next
 		ok = true
 		return
@@ -75,6 +89,7 @@ func (l *List[T]) Remove(index int) (rs T, ok bool) {
 				return
 			}
 			rs = p.next.data
+			l.pool.Put(p.next)
 			p.next = p.next.next
 			ok = true
 			return
