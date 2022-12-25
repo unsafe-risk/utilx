@@ -26,18 +26,25 @@ jobs:
           ./debugx/errorx
           ./debugx/safex
           ./dsx
-          ./dsx/dequex
-          ./dsx/listx
+          ./dsx/arrayx
+          ./dsx/arrayx/listx
+          ./dsx/arrayx/queuex
+          ./dsx/arrayx/stackx
+          ./dsx/arrayx/treex
+          ./dsx/arrayx/treex/btreex
+          ./dsx/arrayx/treex/rbtreex
+          ./dsx/linkedx
+          ./dsx/linkedx/dequex    
+          ./dsx/linkedx/listx
+          ./dsx/linkedx/queuex
+          ./dsx/linkedx/stackx
+          ./dsx/linkedx/treex
+          ./dsx/linkedx/treex/btreex
+          ./dsx/linkedx/treex/rbtreex
           ./dsx/mapx
           ./dsx/mapx/ordmapx
           ./dsx/mapx/syncmapx
           ./dsx/mapx/treemapx
-          ./dsx/queuex
-          ./dsx/ringx
-          ./dsx/stackx
-          ./dsx/treex
-          ./dsx/treex/btreex
-          ./dsx/treex/rbtreex
           ./encodex
           ./encodex/gobx
           ./encodex/jsonx
