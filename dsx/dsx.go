@@ -24,3 +24,10 @@ type Queue[T any] interface {
 	Peek() (T, bool)
 	IsEmpty() bool
 }
+
+type Stack[T any] interface {
+	Push(T)
+	Pop() (T, bool)
+	Peek() (T, bool)
+	Len() int
+}
