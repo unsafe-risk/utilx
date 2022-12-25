@@ -6,7 +6,7 @@ import (
 )
 
 type iTuple struct {
-	Offset uint64
+	Offset int64
 	Type   int8
 }
 
@@ -30,15 +30,15 @@ func (s iSlice) Sort() {
 
 var ErrInvalidInterval = errors.New("invalid interval")
 
-func intersection(s iSlice) (lower, upper uint64, ok bool) {
-	var M uint64 = uint64(s.Len()) / 3
-	var F uint64
+func intersection(s iSlice) (lower, upper int64, ok bool) {
+	var M int64 = int64(s.Len()) / 3
+	var F int64
 
 	for F < M/2 {
-		var End, Mid uint64
+		var End, Mid int64
 
 		for i := range s {
-			End = End - uint64(s[i].Type)
+			End = End - int64(s[i].Type)
 			if End >= M-F {
 				lower = s[i].Offset
 				break
@@ -52,7 +52,7 @@ func intersection(s iSlice) (lower, upper uint64, ok bool) {
 		End = 0
 
 		for i := len(s) - 1; i >= 0; i-- {
-			End = End + uint64(s[i].Type)
+			End = End + int64(s[i].Type)
 			if End >= M-F {
 				upper = s[i].Offset
 				break
@@ -78,11 +78,17 @@ func intersection(s iSlice) (lower, upper uint64, ok bool) {
 }
 
 type Interval struct {
-	Offset         uint64
-	ConfidenceBand uint64
+	Offset         int64
+	ConfidenceBand int64
 }
 
-func Intersection(intervals ...Interval) (upper, lower uint64, ok bool) {
+func Intersection(intervals ...Interval) (upper, lower int64, ok bool) {
+	if len(intervals) == 1 {
+		return intervals[0].Offset - intervals[0].ConfidenceBand,
+			intervals[0].Offset + intervals[0].ConfidenceBand,
+			true
+	}
+
 	is := make(iSlice, 0, len(intervals)*3)
 	for i := range intervals {
 		is = append(
