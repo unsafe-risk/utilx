@@ -17,3 +17,10 @@ type List[T any] interface {
 	Iterate(func(T) bool)
 	Len() int
 }
+
+type Queue[T any] interface {
+	Enqueue(T)
+	Dequeue() (T, bool)
+	Peek() (T, bool)
+	IsEmpty() bool
+}

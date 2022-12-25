@@ -1,11 +1,17 @@
 package queuex
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/unsafe-risk/utilx/dsx"
+)
 
 type node[T any] struct {
 	data T
 	next *node[T]
 }
+
+var _ = (dsx.Queue[int])(&Queue[int]{})
 
 type Queue[T any] struct {
 	pool sync.Pool
