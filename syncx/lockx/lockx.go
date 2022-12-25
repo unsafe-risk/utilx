@@ -13,5 +13,7 @@ func Lock[T any](l *T, f func(*T)) {
 		p = l
 	}
 	f(p)
-	atomic.StorePointer((*unsafe.Pointer)(unsafe.Pointer(l)), unsafe.Pointer(p))
+	for !atomic.CompareAndSwapPointer((*unsafe.Pointer)(unsafe.Pointer(l)), nil, unsafe.Pointer(p)) {
+		runtime.Gosched()
+	}
 }
