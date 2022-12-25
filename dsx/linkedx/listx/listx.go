@@ -10,8 +10,9 @@ type node[T any] struct {
 var _ = (dsx.List[int])(&List[int]{})
 
 type List[T any] struct {
-	head *node[T]
-	tail *node[T]
+	head   *node[T]
+	tail   *node[T]
+	length int
 }
 
 func New[T any]() *List[T] {
@@ -19,6 +20,7 @@ func New[T any]() *List[T] {
 }
 
 func (l *List[T]) Append(data T) {
+	l.length++
 	n := &node[T]{}
 	n.data = data
 	if l.tail == nil {
@@ -31,6 +33,7 @@ func (l *List[T]) Append(data T) {
 }
 
 func (l *List[T]) Insert(index int, data T) {
+	l.length++
 	n := &node[T]{}
 	n.data = data
 	if index == 0 {
@@ -55,6 +58,7 @@ func (l *List[T]) Insert(index int, data T) {
 }
 
 func (l *List[T]) Remove(index int) (rs T, ok bool) {
+	l.length--
 	if index == 0 {
 		if l.head == nil {
 			return
@@ -102,8 +106,5 @@ func (l *List[T]) Iterate(f func(T) bool) {
 }
 
 func (l *List[T]) Len() (rs int) {
-	for p := l.head; p != nil; p = p.next {
-		rs++
-	}
-	return
+	return l.length
 }
