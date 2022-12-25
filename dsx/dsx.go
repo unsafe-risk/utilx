@@ -19,14 +19,14 @@ type List[T any] interface {
 }
 
 type Queue[T any] interface {
-	Enqueue(T)
+	Enqueue(T) bool
 	Dequeue() (T, bool)
 	Peek() (T, bool)
 	IsEmpty() bool
 }
 
 type Stack[T any] interface {
-	Push(T)
+	Push(T) bool
 	Pop() (T, bool)
 	Peek() (T, bool)
 	Len() int

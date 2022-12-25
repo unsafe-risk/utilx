@@ -29,16 +29,17 @@ func New[T any]() *Queue[T] {
 	}
 }
 
-func (q *Queue[T]) Enqueue(data T) {
+func (q *Queue[T]) Enqueue(data T) bool {
 	n := q.pool.Get().(*node[T])
 	n.data = data
 	if q.head == nil {
 		q.head = n
 		q.tail = n
-		return
+		return true
 	}
 	q.tail.next = n
 	q.tail = n
+	return true
 }
 
 func (q *Queue[T]) Dequeue() (data T, ok bool) {

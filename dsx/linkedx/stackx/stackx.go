@@ -29,12 +29,13 @@ func New[T any]() *Stack[T] {
 	}
 }
 
-func (s *Stack[T]) Push(data T) {
+func (s *Stack[T]) Push(data T) bool {
 	s.length++
 	n := s.pool.Get().(*node[T])
 	n.data = data
 	n.next = s.head
 	s.head = n
+	return true
 }
 
 func (s *Stack[T]) Pop() (data T, ok bool) {

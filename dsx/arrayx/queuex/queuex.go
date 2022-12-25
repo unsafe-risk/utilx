@@ -1,6 +1,10 @@
 package queuex
 
-import "fmt"
+import (
+	"github.com/unsafe-risk/utilx/dsx"
+)
+
+var _ = (dsx.Queue[int])(&Ring[int]{})
 
 type Ring[T any] struct {
 	data []T
@@ -21,13 +25,13 @@ func New[T any](cap int64) *Ring[T] {
 	}
 }
 
-func (r *Ring[T]) Enqueue(data T) error {
+func (r *Ring[T]) Enqueue(data T) bool {
 	if r.IsFull() == true {
-		return fmt.Errorf("Queue is full | cap - %d", r.cap)
+		return false
 	}
 	r.data[r.tail] = data
 	r.tail = (r.tail + 1) % r.cap
-	return nil
+	return true
 }
 
 func (r *Ring[T]) Dequeue() (data T, ok bool) {
@@ -53,4 +57,11 @@ func (r *Ring[T]) IsEmpty() bool {
 
 func (r *Ring[T]) IsFull() bool {
 	return r.head == (r.tail+1)%r.cap
+}
+
+func (r *Ring[T]) Peek() (data T, ok bool) {
+	if r.IsEmpty() {
+		return
+	}
+	return r.data[r.head], true
 }
