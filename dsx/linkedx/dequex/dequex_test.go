@@ -3,7 +3,7 @@ package dequex_test
 import (
 	"testing"
 
-	"github.com/unsafe-risk/utilx/dsx/dequex"
+	"github.com/unsafe-risk/utilx/dsx/linkedx/dequex"
 )
 
 func TestDeque(t *testing.T) {

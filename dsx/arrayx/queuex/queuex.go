@@ -1,4 +1,4 @@
-package ringx
+package queuex
 
 import "fmt"
 
