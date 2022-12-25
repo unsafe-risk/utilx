@@ -27,8 +27,8 @@ func Encrypt(pw []byte) ([]byte, error) {
 	return hash, nil
 }
 
-func Decrypt(hash, pw []byte) (bool, error) {
-	err := bcrypt.CompareHashAndPassword(hash, pw)
+func Decrypt(enc, pw []byte) (bool, error) {
+	err := bcrypt.CompareHashAndPassword(enc, pw)
 	if err != nil {
 		if err == bcrypt.ErrMismatchedHashAndPassword {
 			return false, err
