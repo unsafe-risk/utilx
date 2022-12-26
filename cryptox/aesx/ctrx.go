@@ -1,4 +1,4 @@
-package cbcx
+package aesx
 
 import (
 	"crypto/aes"
@@ -7,7 +7,7 @@ import (
 	"crypto/sha256"
 )
 
-func Encrypt(data []byte, key []byte) ([]byte, error) {
+func EncryptCTR(data []byte, key []byte) ([]byte, error) {
 	k := sha256.Sum256(key)
 	block, err := aes.NewCipher(k[:])
 	if err != nil {
@@ -17,13 +17,13 @@ func Encrypt(data []byte, key []byte) ([]byte, error) {
 	if _, err := rand.Read(iv); err != nil {
 		return nil, err
 	}
-	mode := cipher.NewCBCEncrypter(block, iv)
+	mode := cipher.NewCTR(block, iv)
 	result := make([]byte, len(data))
-	mode.CryptBlocks(result, data)
+	mode.XORKeyStream(result, data)
 	return append(iv, result...), nil
 }
 
-func Decrypt(data []byte, key []byte) ([]byte, error) {
+func DecryptCTR(data []byte, key []byte) ([]byte, error) {
 	k := sha256.Sum256(key)
 	block, err := aes.NewCipher(k[:])
 	if err != nil {
@@ -31,8 +31,8 @@ func Decrypt(data []byte, key []byte) ([]byte, error) {
 	}
 	ivSize := block.BlockSize()
 	iv, ciphertext := data[:ivSize], data[ivSize:]
-	mode := cipher.NewCBCDecrypter(block, iv)
+	mode := cipher.NewCTR(block, iv)
 	result := make([]byte, len(ciphertext))
-	mode.CryptBlocks(result, ciphertext)
+	mode.XORKeyStream(result, ciphertext)
 	return result, nil
 }
