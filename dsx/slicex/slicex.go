@@ -7,121 +7,151 @@ import (
 
 type Slice[T any] []T
 
-func New[T any](v ...T) Slice[T] {
-	return v
+func New[T any](v ...T) *Slice[T] {
+	var s Slice[T] = v
+	return &s
 }
 
-func (s Slice[T]) Copy() Slice[T] {
-	return append(Slice[T]{}, s...)
+func (s *Slice[T]) Copy() *Slice[T] {
+	copy := append(Slice[T]{}, *s...)
+	return &copy
 }
 
-func (s Slice[T]) Replace(i int, v T) Slice[T] {
-	s[i] = v
-	return s
+func (s *Slice[T]) Clear() {
+	*s = (*s)[:0]
 }
 
-func (s Slice[T]) Push(v ...T) Slice[T] {
-	s = append(s, v...)
-	return s
-}
-
-func (s Slice[T]) Pop() T {
-	var v T
-	if len(s) == 0 {
-		return v
+func (s *Slice[T]) Replace(i int, v T) *Slice[T] {
+	if i < 0 {
+		i = 0
 	}
-	v = s[len(s)-1]
-	s = s[:len(s)-1]
-	return v
-}
-
-func (s Slice[T]) UnShift(v ...T) Slice[T] {
-	return append(v, s...)
-}
-
-func (s Slice[T]) Shift() T {
-	var v T
-	if len(s) == 0 {
-		return v
+	if i >= len(*s) {
+		i = len(*s) - 1
 	}
-	v = s[0]
-	s = s[1:]
-	return v
-}
-
-func (s Slice[T]) Slice(i, j int) Slice[T] {
-	s = s[i:j]
+	(*s)[i] = v
 	return s
 }
 
-func (s Slice[T]) Insert(i int, v ...T) Slice[T] {
-	return s.Splice(i, i, v...)
-}
-
-func (s Slice[T]) Splice(i, j int, v ...T) Slice[T] {
-	s = append(append(s[:i], v...), s[j:]...)
+func (s *Slice[T]) Push(v ...T) *Slice[T] {
+	*s = append(*s, v...)
 	return s
 }
 
-func (s Slice[T]) Delete(i int) Slice[T] {
-	return s.Cut(i, i+1)
+func (s *Slice[T]) Pop() T {
+	var r T
+	if len(*s) == 0 {
+		return r
+	}
+	r = (*s)[len(*s)-1]
+	*s = (*s)[:len(*s)-1]
+	return r
 }
 
-func (s Slice[T]) DeleteReplace(i int) Slice[T] {
-	s[i] = s[len(s)-1]
-	return s[:len(s)-1]
-}
-
-func (s Slice[T]) Cut(i, j int) Slice[T] {
-	s = append(s[:i], s[j:]...)
+func (s *Slice[T]) UnShift(v ...T) *Slice[T] {
+	*s = append(v, *s...)
 	return s
 }
 
-func (s Slice[T]) Reverse() Slice[T] {
-	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
-		s[i], s[j] = s[j], s[i]
+func (s *Slice[T]) Shift() T {
+	var r T
+	if len(*s) == 0 {
+		return r
+	}
+	r = (*s)[0]
+	*s = (*s)[1:]
+	return r
+}
+
+func (s *Slice[T]) Slice(i, j int) *Slice[T] {
+	if j <= 0 {
+		j = len(*s) + j
+	}
+	i, j = preprocIndexException(i, j, len(*s))
+	*s = (*s)[i:j]
+	return s
+}
+
+func (s *Slice[T]) Insert(i int, v ...T) *Slice[T] {
+	i, j := preprocIndexException(i, i, len(*s))
+	*s = append(append((*s)[:i], v...), (*s)[j:]...)
+	return s
+}
+
+func (s *Slice[T]) Splice(i, j int, v ...T) *Slice[T] {
+	if i < 0 {
+		i = 0
+	}
+	if j > len(*s) {
+		j = len(*s)
+	}
+	*s = append(append((*s)[:i], v...), (*s)[j:]...)
+	return s
+}
+
+func (s *Slice[T]) Delete(i int) *Slice[T] {
+	if i < 0 || i >= len(*s) {
+		return s
+	}
+	*s = append((*s)[:i], (*s)[i+1:]...)
+	return s
+}
+
+func (s *Slice[T]) DeleteReplace(i int) *Slice[T] {
+	if i < 0 || i >= len(*s) {
+		return s
+	}
+	(*s)[i] = (*s)[len(*s)-1]
+	*s = (*s)[:len(*s)-1]
+	return s
+}
+
+func (s *Slice[T]) Cut(i, j int) *Slice[T] {
+	i, j = preprocIndexException(i, j, len(*s))
+	*s = append((*s)[:i], (*s)[j:]...)
+	return s
+}
+
+func (s *Slice[T]) Reverse() *Slice[T] {
+	for i, j := 0, len(*s)-1; i < j; i, j = i+1, j-1 {
+		(*s)[i], (*s)[j] = (*s)[j], (*s)[i]
 	}
 	return s
 }
 
-func (s Slice[T]) Rotate() Slice[T] {
-	var r T = s[0]
-	for i := 1; i < len(s); i++ {
-		s[i-1] = s[i]
+func (s *Slice[T]) Rotate(n int) *Slice[T] {
+	if n > 0 {
+		index := n % len(*s)
+		*s = append((*s)[index:], (*s)[:index]...)
+	} else if n < 0 {
+		index := -n % len(*s)
+		*s = append((*s)[len(*s)-index:], (*s)[:len(*s)-index]...)
 	}
-	s[len(s)-1] = r
 	return s
 }
 
-func (s Slice[T]) DeRotate() Slice[T] {
-	var r T = s[len(s)-1]
-	for i := 0; i < len(s)-1; i++ {
-		s[len(s)-1-i] = s[len(s)-2-i]
-	}
-	s[len(s)-1] = r
-	return s
-}
-
-func (s Slice[T]) Shuffle() Slice[T] {
-	rand.Shuffle(len(s), func(i, j int) {
-		s[i], s[j] = s[j], s[i]
+func (s *Slice[T]) Shuffle() *Slice[T] {
+	rand.Shuffle(len(*s), func(i, j int) {
+		(*s)[i], (*s)[j] = (*s)[j], (*s)[i]
 	})
 	return s
 }
 
-func (s Slice[T]) Filter(f func(T) bool) Slice[T] {
-	var n int = 0
-	for _, v := range s {
+func (s *Slice[T]) Filter(f func(T) bool) *Slice[T] {
+	n := 0
+	for _, v := range *s {
 		if f(v) {
-			s[n] = v
+			(*s)[n] = v
 			n++
 		}
 	}
-	s = s[:n]
+	*s = (*s)[:n]
 	return s
 }
 
 func (s Slice[T]) Batch(size int) []Slice[T] {
+	if size <= 0 {
+		size = 1
+	}
 	batches := make([]Slice[T], 0, (len(s)+size-1)/size)
 	for size < len(s) {
 		s, batches = s[size:], append(batches, s[0:size:size])
@@ -170,10 +200,20 @@ func (s Slice[T]) ForEach(f func(int, T)) {
 	}
 }
 
-func (s Slice[T]) Length() int {
+func (s Slice[T]) Len() int {
 	return len(s)
 }
 
-func (s Slice[T]) Clear() {
-	s = s[:0]
+// 인덱스 전처리
+func preprocIndexException(i, j, len int) (int, int) {
+	if i < 0 {
+		i = 0
+	}
+	if j > len {
+		j = len
+	}
+	if i > j {
+		j = i
+	}
+	return i, j
 }
