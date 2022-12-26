@@ -217,3 +217,7 @@ func preprocIndexException(i, j, len int) (int, int) {
 	}
 	return i, j
 }
+
+func (s Slice[T]) Finalize() []T {
+	return s
+}
