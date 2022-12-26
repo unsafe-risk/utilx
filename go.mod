@@ -1,6 +1,6 @@
 module github.com/unsafe-risk/utilx
 
-go 1.20
+go 1.19
 
 require golang.org/x/crypto v0.4.0
 
