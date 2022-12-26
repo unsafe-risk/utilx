@@ -3,41 +3,41 @@ package syncmapx
 import "sync"
 
 // goroutine-safe map
-type Map[T any] struct {
-	m   map[string]T
+type Map[K comparable, V any] struct {
+	m   map[K]V
 	mtx sync.RWMutex
 }
 
-func New[T any]() *Map[T] {
-	return &Map[T]{
-		m: make(map[string]T),
+func New[K comparable, V any]() *Map[K, V] {
+	return &Map[K, V]{
+		m: make(map[K]V),
 	}
 }
 
-func (m *Map[T]) Get(key string) T {
+func (m *Map[K, V]) Get(k K) V {
 	m.mtx.RLock()
-	val := m.m[key]
+	val := m.m[k]
 	m.mtx.RUnlock()
 	return val
 }
 
-func (m *Map[T]) Has(key string) bool {
+func (m *Map[K, V]) Has(k K) bool {
 	m.mtx.RLock()
-	_, ok := m.m[key]
+	_, ok := m.m[k]
 	m.mtx.RUnlock()
 	return ok
 }
 
-func (m *Map[T]) Size() int {
+func (m *Map[K, V]) Size() int {
 	m.mtx.RLock()
 	size := len(m.m)
 	m.mtx.RUnlock()
 	return size
 }
 
-func (t *Map[T]) Keys() []string {
+func (t *Map[K, V]) Keys() []K {
 	t.mtx.RLock()
-	keys := make([]string, 0, len(t.m))
+	keys := make([]K, 0, len(t.m))
 	for k := range t.m {
 		keys = append(keys, k)
 	}
@@ -45,9 +45,9 @@ func (t *Map[T]) Keys() []string {
 	return keys
 }
 
-func (t *Map[T]) Values() []T {
+func (t *Map[K, V]) Values() []V {
 	t.mtx.RLock()
-	items := make([]T, 0, len(t.m))
+	items := make([]V, 0, len(t.m))
 	for _, v := range t.m {
 		items = append(items, v)
 	}
@@ -55,20 +55,20 @@ func (t *Map[T]) Values() []T {
 	return items
 }
 
-func (m *Map[T]) Set(key string, value T) {
+func (m *Map[K, V]) Set(k K, v V) {
 	m.mtx.Lock()
-	m.m[key] = value
+	m.m[k] = v
 	m.mtx.Unlock()
 }
 
-func (m *Map[T]) Delete(key string) {
+func (m *Map[K, V]) Delete(k K) {
 	m.mtx.Lock()
-	delete(m.m, key)
+	delete(m.m, k)
 	m.mtx.Unlock()
 }
 
-func (m *Map[T]) Clear() {
+func (m *Map[K, V]) Clear() {
 	m.mtx.Lock()
-	m.m = make(map[string]T)
+	m.m = make(map[K]V)
 	m.mtx.Unlock()
 }
