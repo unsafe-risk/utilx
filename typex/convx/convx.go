@@ -17,6 +17,27 @@ func Register[T, R any](converter func(T) R) {
 	converters[reflect.TypeOf(*new(T))][reflect.TypeOf(*new(R))] = converter
 }
 
+func Unregister[T, R any]() {
+	convertersLock.Lock()
+	defer convertersLock.Unlock()
+	m := converters[reflect.TypeOf(*new(T))]
+	if m == nil {
+		return
+	}
+	delete(m, reflect.TypeOf(*new(R)))
+}
+
+func Exists[T, R any]() bool {
+	convertersLock.RLock()
+	defer convertersLock.RUnlock()
+	m := converters[reflect.TypeOf(*new(T))]
+	if m == nil {
+		return false
+	}
+	_, ok := m[reflect.TypeOf(*new(R))]
+	return ok
+}
+
 func Into[T, R any](value T) (rs R, ok bool) {
 	convertersLock.RLock()
 	defer convertersLock.RUnlock()
