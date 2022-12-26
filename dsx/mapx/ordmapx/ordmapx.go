@@ -1,62 +1,76 @@
 package ordmapx
 
-// TODO - use btree to order
-type Map[K comparable, V any] struct {
-	m map[K]V
-	// order list[K]
+import (
+	"github.com/unsafe-risk/utilx/dsx/mapx/sklmapx"
+	"golang.org/x/exp/constraints"
+)
+
+type OrdMap[K constraints.Ordered, V any] struct {
+	m   map[K]V
+	skl *sklmapx.SkipListMap[K, struct{}]
 }
 
-func New[K comparable, V any]() *Map[K, V] {
-	return &Map[K, V]{
-		m: make(map[K]V),
+func New[K constraints.Ordered, V any]() *OrdMap[K, V] {
+	return &OrdMap[K, V]{
+		m:   make(map[K]V),
+		skl: sklmapx.New[K, struct{}](),
 	}
 }
 
-func (m *Map[K, V]) Get(key K) (value V, ok bool) {
-	value, ok = m.m[key]
-	return
+func (m *OrdMap[K, V]) Len() int {
+	return m.skl.Len()
 }
 
-/*
-// set comparable
-func (m *Map[K, V]) Set(key K, value V) {
+func (m *OrdMap[K, V]) Get(key K) (V, bool) {
+	v, ok := m.m[key]
+	return v, ok
+}
+
+func (m *OrdMap[K, V]) Set(key K, value V) {
 	if _, ok := m.m[key]; !ok {
-		m.order = append(m.order, key)
+		m.skl.Set(key, struct{}{})
 	}
 	m.m[key] = value
 }
 
-func (m *Map[K, V]) Delete(key K) {
-	delete(m.m, key)
-	for i, k := range m.order {
-		if k == key {
-			m.order = append(m.order[:i], m.order[i+1:]...)
-			return
-		}
+func (m *OrdMap[K, V]) Del(key K) {
+	if _, ok := m.m[key]; ok {
+		m.skl.Del(key)
+		delete(m.m, key)
 	}
 }
 
-func (m *Map[K, V]) Len() int {
-	return len(m.m)
+func (m *OrdMap[K, V]) Clear() {
+	m.m = make(map[K]V)
+	m.skl.Clear()
 }
 
-func (m *Map[K, V]) Range(f func(key K, value V) bool) {
-	for _, key := range m.order {
-		if !f(key, m.m[key]) {
-			return
+func (m *OrdMap[K, V]) Keys() []K {
+	return m.skl.Keys()
+}
+
+func (m *OrdMap[K, V]) Values() []V {
+	iter := m.skl.Iterator()
+	values := make([]V, 0, m.skl.Len())
+	for {
+		k, _, ok := iter.Next()
+		if !ok {
+			break
 		}
-	}
-}
-
-func (m *Map[K, V]) Keys() []K {
-	return m.order
-}
-
-func (m *Map[K, V]) Values() []V {
-	values := make([]V, len(m.order))
-	for i, key := range m.order {
-		values[i] = m.m[key]
+		values = append(values, m.m[k])
 	}
 	return values
 }
-*/
+
+func (m *OrdMap[K, V]) Range(f func(key K, value V) (stop bool)) {
+	iter := m.skl.Iterator()
+	for {
+		k, _, ok := iter.Next()
+		if !ok {
+			break
+		}
+		if stop := f(k, m.m[k]); stop {
+			break
+		}
+	}
+}
