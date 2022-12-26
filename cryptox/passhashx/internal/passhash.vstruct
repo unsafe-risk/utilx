@@ -1,6 +1,8 @@
 enum Parameter {
     Argon2ID_High,
-    Argon2ID_Low
+    Argon2ID_Low,
+    Argon2ID_Mobile_High,
+    Argon2ID_Mobile_Low
 }
 
 struct PasswordHash {

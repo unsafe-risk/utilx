@@ -21,8 +21,10 @@ var _ = fmt.Sprint
 type Parameter uint8
 
 const (
-	Parameter_Argon2ID_High Parameter = 0
-	Parameter_Argon2ID_Low  Parameter = 1
+	Parameter_Argon2ID_High        Parameter = 0
+	Parameter_Argon2ID_Low         Parameter = 1
+	Parameter_Argon2ID_Mobile_High Parameter = 2
+	Parameter_Argon2ID_Mobile_Low  Parameter = 3
 )
 
 func (e Parameter) String() string {
@@ -31,6 +33,10 @@ func (e Parameter) String() string {
 		return "Argon2ID_High"
 	case Parameter_Argon2ID_Low:
 		return "Argon2ID_Low"
+	case Parameter_Argon2ID_Mobile_High:
+		return "Argon2ID_Mobile_High"
+	case Parameter_Argon2ID_Mobile_Low:
+		return "Argon2ID_Mobile_Low"
 	}
 	return ""
 }
@@ -38,24 +44,36 @@ func (e Parameter) String() string {
 func (e Parameter) Match(
 	onArgon2ID_High func(),
 	onArgon2ID_Low func(),
+	onArgon2ID_Mobile_High func(),
+	onArgon2ID_Mobile_Low func(),
 ) {
 	switch e {
 	case Parameter_Argon2ID_High:
 		onArgon2ID_High()
 	case Parameter_Argon2ID_Low:
 		onArgon2ID_Low()
+	case Parameter_Argon2ID_Mobile_High:
+		onArgon2ID_Mobile_High()
+	case Parameter_Argon2ID_Mobile_Low:
+		onArgon2ID_Mobile_Low()
 	}
 }
 
 func (e Parameter) MatchS(s struct {
-	onArgon2ID_High func()
-	onArgon2ID_Low  func()
+	onArgon2ID_High        func()
+	onArgon2ID_Low         func()
+	onArgon2ID_Mobile_High func()
+	onArgon2ID_Mobile_Low  func()
 }) {
 	switch e {
 	case Parameter_Argon2ID_High:
 		s.onArgon2ID_High()
 	case Parameter_Argon2ID_Low:
 		s.onArgon2ID_Low()
+	case Parameter_Argon2ID_Mobile_High:
+		s.onArgon2ID_Mobile_High()
+	case Parameter_Argon2ID_Mobile_Low:
+		s.onArgon2ID_Mobile_Low()
 	}
 }
 
