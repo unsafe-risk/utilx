@@ -8,7 +8,7 @@ import (
 
 const MAX_HEIGHT = 16
 
-func (l *skl[T, V]) rand_height() int {
+func (l *skl[K, V]) rand_height() int {
 	var h int = 1
 	for ; h < MAX_HEIGHT; h++ {
 		if splitmix64(&l.seed)&0x1 == 1 {
@@ -18,25 +18,25 @@ func (l *skl[T, V]) rand_height() int {
 	return h
 }
 
-type skl[T constraints.Ordered, V any] struct {
-	head *sknode[T, V]
-	tail *sknode[T, V]
+type skl[K constraints.Ordered, V any] struct {
+	head *sknode[K, V]
+	tail *sknode[K, V]
 	seed uint64
 	len  uint
 }
 
-type sknode[T constraints.Ordered, V any] struct {
-	key    T
+type sknode[K constraints.Ordered, V any] struct {
+	key    K
 	value  V
-	next   [MAX_HEIGHT]*sknode[T, V]
+	next   [MAX_HEIGHT]*sknode[K, V]
 	height uint16
 }
 
-func (s *sknode[T, V]) Height() int {
+func (s *sknode[K, V]) Height() int {
 	return int(s.height)
 }
 
-func (l *skl[T, V]) search(key T, ctx *[MAX_HEIGHT]*sknode[T, V]) *sknode[T, V] {
+func (l *skl[K, V]) search(key K, ctx *[MAX_HEIGHT]*sknode[K, V]) *sknode[K, V] {
 	x := l.head
 	for i := MAX_HEIGHT - 1; i >= 0; i-- {
 		for x.next[i] != l.tail && x.next[i].key < key {
@@ -51,7 +51,7 @@ func (l *skl[T, V]) search(key T, ctx *[MAX_HEIGHT]*sknode[T, V]) *sknode[T, V] 
 	return x
 }
 
-func (l *skl[T, V]) insert(key T, value V, ctx *[MAX_HEIGHT]*sknode[T, V]) *sknode[T, V] {
+func (l *skl[K, V]) insert(key K, value V, ctx *[MAX_HEIGHT]*sknode[K, V]) *sknode[K, V] {
 	x := l.search(key, ctx)
 	if x != nil {
 		x.value = value
@@ -59,7 +59,7 @@ func (l *skl[T, V]) insert(key T, value V, ctx *[MAX_HEIGHT]*sknode[T, V]) *skno
 	}
 
 	level := l.rand_height()
-	node := &sknode[T, V]{key: key, value: value, height: uint16(level)}
+	node := &sknode[K, V]{key: key, value: value, height: uint16(level)}
 
 	for i := 0; i < level; i++ {
 		node.next[i] = ctx[i].next[i]
@@ -70,7 +70,7 @@ func (l *skl[T, V]) insert(key T, value V, ctx *[MAX_HEIGHT]*sknode[T, V]) *skno
 	return node
 }
 
-func (l *skl[T, V]) delete(key T, ctx *[MAX_HEIGHT]*sknode[T, V]) bool {
+func (l *skl[K, V]) delete(key K, ctx *[MAX_HEIGHT]*sknode[K, V]) bool {
 	x := l.search(key, ctx)
 	if x == nil {
 		return false
@@ -84,22 +84,22 @@ func (l *skl[T, V]) delete(key T, ctx *[MAX_HEIGHT]*sknode[T, V]) bool {
 	return true
 }
 
-type SkipListMap[T constraints.Ordered, V any] struct {
-	skl skl[T, V]
+type SkipListMap[K constraints.Ordered, V any] struct {
+	skl skl[K, V]
 }
 
-func (m *SkipListMap[T, V]) Set(key T, value V) {
-	var ctx [MAX_HEIGHT]*sknode[T, V]
+func (m *SkipListMap[K, V]) Set(key K, value V) {
+	var ctx [MAX_HEIGHT]*sknode[K, V]
 	m.skl.insert(key, value, &ctx)
 }
 
-func (m *SkipListMap[T, V]) Del(key T) bool {
-	var ctx [MAX_HEIGHT]*sknode[T, V]
+func (m *SkipListMap[K, V]) Del(key K) bool {
+	var ctx [MAX_HEIGHT]*sknode[K, V]
 	return m.skl.delete(key, &ctx)
 }
 
-func (m *SkipListMap[T, V]) Get(key T) (V, bool) {
-	var ctx [MAX_HEIGHT]*sknode[T, V]
+func (m *SkipListMap[K, V]) Get(key K) (V, bool) {
+	var ctx [MAX_HEIGHT]*sknode[K, V]
 	x := m.skl.search(key, &ctx)
 	if x == nil {
 		var zero V
@@ -108,23 +108,23 @@ func (m *SkipListMap[T, V]) Get(key T) (V, bool) {
 	return x.value, true
 }
 
-func New[T constraints.Ordered, V any]() *SkipListMap[T, V] {
-	head := &sknode[T, V]{}
-	tail := &sknode[T, V]{}
+func New[K constraints.Ordered, V any]() *SkipListMap[K, V] {
+	head := &sknode[K, V]{}
+	tail := &sknode[K, V]{}
 	for i := 0; i < MAX_HEIGHT; i++ {
 		head.next[i] = tail
 	}
 	seed := root_next()
-	return &SkipListMap[T, V]{skl: skl[T, V]{head: head, tail: tail, seed: seed}}
+	return &SkipListMap[K, V]{skl: skl[K, V]{head: head, tail: tail, seed: seed}}
 }
 
-func (m *SkipListMap[T, V]) Iterator() *Iterator[T, V] {
-	return &Iterator[T, V]{list: m}
+func (m *SkipListMap[K, V]) Iterator() *Iterator[K, V] {
+	return &Iterator[K, V]{list: m}
 }
 
-func (m *SkipListMap[T, V]) String() string {
+func (m *SkipListMap[K, V]) String() string {
 	var buf []byte
-	i := Iterator[T, V]{list: m}
+	i := Iterator[K, V]{list: m}
 	buf = append(buf, "sklmapx["...)
 	var idx int
 	for {
@@ -142,9 +142,9 @@ func (m *SkipListMap[T, V]) String() string {
 	return string(buf)
 }
 
-func (m *SkipListMap[T, V]) Keys() []T {
-	var keys []T = make([]T, 0, m.Len())
-	i := Iterator[T, V]{list: m}
+func (m *SkipListMap[K, V]) Keys() []K {
+	var keys []K = make([]K, 0, m.Len())
+	i := Iterator[K, V]{list: m}
 	for {
 		key, _, ok := i.Next()
 		if !ok {
@@ -155,9 +155,9 @@ func (m *SkipListMap[T, V]) Keys() []T {
 	return keys
 }
 
-func (m *SkipListMap[T, V]) Values() []V {
+func (m *SkipListMap[K, V]) Values() []V {
 	var values []V = make([]V, 0, m.Len())
-	i := Iterator[T, V]{list: m}
+	i := Iterator[K, V]{list: m}
 	for {
 		_, value, ok := i.Next()
 		if !ok {
@@ -168,13 +168,13 @@ func (m *SkipListMap[T, V]) Values() []V {
 	return values
 }
 
-func (m *SkipListMap[T, V]) Len() int {
+func (m *SkipListMap[K, V]) Len() int {
 	return int(m.skl.len)
 }
 
-func (m *SkipListMap[T, V]) ToMap() map[T]V {
-	mm := make(map[T]V, m.Len())
-	i := Iterator[T, V]{list: m}
+func (m *SkipListMap[K, V]) ToMap() map[K]V {
+	mm := make(map[K]V, m.Len())
+	i := Iterator[K, V]{list: m}
 	for {
 		key, value, ok := i.Next()
 		if !ok {
@@ -185,39 +185,39 @@ func (m *SkipListMap[T, V]) ToMap() map[T]V {
 	return mm
 }
 
-func (m *SkipListMap[T, V]) Clear() {
+func (m *SkipListMap[K, V]) Clear() {
 	// Clear the map by creating a new one.
-	*m = *New[T, V]()
+	*m = *New[K, V]()
 }
 
-type Iterator[T constraints.Ordered, V any] struct {
-	list *SkipListMap[T, V]
-	ctx  [MAX_HEIGHT]*sknode[T, V]
-	node *sknode[T, V]
+type Iterator[K constraints.Ordered, V any] struct {
+	list *SkipListMap[K, V]
+	ctx  [MAX_HEIGHT]*sknode[K, V]
+	node *sknode[K, V]
 }
 
-func (i *Iterator[T, V]) Seek(key T) (T, V, bool) {
+func (i *Iterator[K, V]) Seek(key K) (K, V, bool) {
 	i.node = i.list.skl.search(key, &i.ctx)
 	if i.node == nil {
-		var zero T
+		var zero K
 		var zeroV V
 		return zero, zeroV, false
 	}
 	return i.node.key, i.node.value, true
 }
 
-func (i *Iterator[T, V]) Rewind() {
+func (i *Iterator[K, V]) Rewind() {
 	i.node = nil
 }
 
-func (i *Iterator[T, V]) Next() (T, V, bool) {
+func (i *Iterator[K, V]) Next() (K, V, bool) {
 	if i.node == nil {
 		i.node = i.list.skl.head.next[0]
 	} else {
 		i.node = i.node.next[0]
 	}
 	if i.node == i.list.skl.tail {
-		var zero T
+		var zero K
 		var zeroV V
 		return zero, zeroV, false
 	}
