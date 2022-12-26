@@ -1,4 +1,4 @@
-package gcmx
+package aesx
 
 import (
 	"crypto/aes"
@@ -7,7 +7,7 @@ import (
 	"crypto/sha256"
 )
 
-func Encrypt(data []byte, key []byte) ([]byte, error) {
+func EncryptGCM(data []byte, key []byte) ([]byte, error) {
 	k := sha256.Sum256(key)
 	block, err := aes.NewCipher(k[:])
 	if err != nil {
@@ -25,7 +25,7 @@ func Encrypt(data []byte, key []byte) ([]byte, error) {
 	return append(nonce, result...), nil
 }
 
-func Decrypt(data []byte, key []byte) ([]byte, error) {
+func DecryptGCM(data []byte, key []byte) ([]byte, error) {
 	k := sha256.Sum256(key)
 	block, err := aes.NewCipher(k[:])
 	if err != nil {
