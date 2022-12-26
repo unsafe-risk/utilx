@@ -29,6 +29,28 @@ func TestHashVerify(t *testing.T) {
 		t.Fatal("password verification failed")
 		t.FailNow()
 	}
+
+	hash2, err := passhashx.Hash([]byte(password), passhashx.SecurityLevelMobileHigh)
+	if err != nil {
+		t.Fatal(err)
+		t.FailNow()
+	}
+
+	if passhashx.Verify([]byte(password), hash2) != nil {
+		t.Fatal("password verification failed")
+		t.FailNow()
+	}
+
+	hash3, err := passhashx.Hash([]byte(password), passhashx.SecurityLevelMobileLow)
+	if err != nil {
+		t.Fatal(err)
+		t.FailNow()
+	}
+
+	if passhashx.Verify([]byte(password), hash3) != nil {
+		t.Fatal("password verification failed")
+		t.FailNow()
+	}
 }
 
 func TestHashVerifyBase64(t *testing.T) {
@@ -51,6 +73,17 @@ func TestHashVerifyBase64(t *testing.T) {
 	}
 
 	if passhashx.VerifyBase64([]byte(password), hash1) != nil {
+		t.Fatal("password verification failed")
+		t.FailNow()
+	}
+
+	hash2, err := passhashx.HashBase64([]byte(password), passhashx.SecurityLevelMobileHigh)
+	if err != nil {
+		t.Fatal(err)
+		t.FailNow()
+	}
+
+	if passhashx.VerifyBase64([]byte(password), hash2) != nil {
 		t.Fatal("password verification failed")
 		t.FailNow()
 	}
