@@ -117,7 +117,7 @@ func TestSplice(t *testing.T) {
 	}
 }
 
-func TestInsert(t *testing.T) {
+func TestExpand(t *testing.T) {
 	for _, test := range []struct {
 		ori    []any
 		idx    int
@@ -140,7 +140,31 @@ func TestInsert(t *testing.T) {
 		{[]any{1, 2, 3}, -100, []any{0}, []any{0, 1, 2, 3}},
 		{[]any{1, 2, 3}, 100, []any{0}, []any{1, 2, 3, 0}},
 	} {
-		ori := New(test.ori...).Insert(test.idx, test.vals...)
+		ori := New(test.ori...).Expand(test.idx, test.vals...)
+		exp := New(test.expect...)
+		require.Equal(t, exp, ori)
+	}
+}
+
+func TestInsert(t *testing.T) {
+	for _, test := range []struct {
+		ori    []any
+		idx    int
+		val    any
+		expect []any
+	}{
+		{[]any{1, 2, 3}, 0, any(0), []any{0, 1, 2, 3}},
+		{[]any{1, 2, 3}, 1, any(0), []any{1, 0, 2, 3}},
+		{[]any{1, 2, 3}, 2, any(0), []any{1, 2, 0, 3}},
+		{[]any{1, 2, 3}, 3, any(0), []any{1, 2, 3, 0}},
+
+		{[]any{1, 2, 3}, 3, any(nil), []any{1, 2, 3, nil}},
+
+		// index exception
+		{[]any{1, 2, 3}, -100, any(0), []any{0, 1, 2, 3}},
+		{[]any{1, 2, 3}, 100, any(0), []any{1, 2, 3, 0}},
+	} {
+		ori := New(test.ori...).Insert(test.idx, test.val)
 		exp := New(test.expect...)
 		require.Equal(t, exp, ori)
 	}
@@ -329,6 +353,8 @@ func TestSplit(t *testing.T) {
 		{[]any{1, 2, 3}, []int{1, 2}, [][]any{{1}, {2, 3}}},
 		{[]any{1, 2, 3}, []int{2}, [][]any{{1, 2}, {3}}},
 		{[]any{1, 2, 3}, []int{3}, [][]any{{1, 2, 3}}},
+
+		{[]any{1, 2, 3}, []int{1, 1, 1}, [][]any{{1}, {2}, {3}}},
 
 		// minus index
 		{[]any{1, 2, 3}, []int{1, -1}, [][]any{{1}, {1}, {1, 2, 3}}},

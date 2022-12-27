@@ -24,7 +24,7 @@ func (s *Slice[T]) Get(i int) T {
 }
 
 func (s *Slice[T]) Copy() *Slice[T] {
-	copy := append(Slice[T]{}, *s...)
+	copy := append((*s)[:0:0], *s...)
 	return &copy
 }
 
@@ -53,8 +53,12 @@ func (s *Slice[T]) Splice(i, j int, v ...T) *Slice[T] {
 	return s
 }
 
-func (s *Slice[T]) Insert(i int, v ...T) *Slice[T] {
+func (s *Slice[T]) Expand(i int, v ...T) *Slice[T] {
 	return s.Splice(i, i, v...)
+}
+
+func (s *Slice[T]) Insert(i int, v T) *Slice[T] {
+	return s.Expand(i, v)
 }
 
 func (s *Slice[T]) Cut(i, j int) *Slice[T] {
@@ -65,8 +69,8 @@ func (s *Slice[T]) Delete(i int) *Slice[T] {
 	return s.Cut(i, i+1)
 }
 
-func (s *Slice[T]) Push(v ...T) *Slice[T] {
-	return s.Insert(len(*s), v...)
+func (s *Slice[T]) Push(v T) *Slice[T] {
+	return s.Insert(len(*s), v)
 }
 
 func (s *Slice[T]) Pop() T {
@@ -79,8 +83,8 @@ func (s *Slice[T]) Pop() T {
 	return r
 }
 
-func (s *Slice[T]) UnShift(v ...T) *Slice[T] {
-	return s.Insert(0, v...)
+func (s *Slice[T]) UnShift(v T) *Slice[T] {
+	return s.Insert(0, v)
 }
 
 func (s *Slice[T]) Shift() T {
@@ -141,16 +145,21 @@ func (s *Slice[T]) Filter(f func(T) bool) *Slice[T] {
 	return s
 }
 
+func (s *Slice[T]) Repeat(cnt int) *Slice[T] {
+	repeat := make(Slice[T], 0, len(*s)*cnt)
+	for i := 0; i < cnt; i++ {
+		repeat = append(repeat, *s...)
+	}
+	*s = repeat
+	return s
+}
+
 func (s Slice[T]) Split(splits ...int) []Slice[T] {
 	var r []Slice[T] = make([]Slice[T], 0, len(splits)+1)
 	var end int
 	for i := 0; i < len(splits); i++ {
-		var endNext = end + splits[i]
-		if endNext < 0 {
-			endNext = 0
-		} else if endNext > len(s) {
-			endNext = len(s)
-		}
+		endNext := end + splits[i]
+		preprocIndexException(&endNext, nil, len(s))
 		if endNext < end {
 			r = append(r, s[endNext:end])
 		} else {
@@ -219,7 +228,6 @@ func (s Slice[T]) ForEach(f func(int, T)) {
 func (s Slice[T]) Len() int {
 	return len(s)
 }
-
 func (s Slice[T]) Finalize() []T {
 	return s
 }
@@ -228,7 +236,7 @@ func (s Slice[T]) Finalize() []T {
 func preprocIndexException(i, j *int, len int) {
 	if *i < 0 {
 		*i = 0
-	} else if *i >= len {
+	} else if *i > len {
 		*i = len
 	}
 
