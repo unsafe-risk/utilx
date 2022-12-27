@@ -21,25 +21,49 @@ func TestCopy(t *testing.T) {
 	fn_test(1, "2", 3.2, []int{1, 2}, []string{"a", "b"})
 }
 
-func TestPushPop(t *testing.T) {
-	ori := New[any](1, "2", 3).Push(1).Push(2.2).Push("안녕").UnShift("hello")
+func TestInsert(t *testing.T) {
+	slice := New[any](1, 2, 3)
+	slice.Insert(-100, 4, 5)
+	fmt.Println(slice)
+	slice.Insert(1, 6)
+	fmt.Println(slice)
+	slice.Insert(100, 7, 8, 9)
+	fmt.Println(slice)
+	slice.Insert(0)
+	fmt.Println(slice)
+}
 
-	fmt.Println(ori.Pop())
-	fmt.Println(ori.Shift())
-	fmt.Println(ori.Pop())
-	fmt.Println(ori.Shift())
-	fmt.Println(ori.Pop())
-	fmt.Println(ori.Shift())
-	fmt.Println(ori.Pop())
-	fmt.Println(ori.Shift())
-	fmt.Println(ori.Pop())
-	fmt.Println(ori.Shift())
-	fmt.Println(ori.Pop())
+func TestDelete(t *testing.T) {
+	slice := New[any](1, 2, 3, "4", 5.5, []byte{6, 6, 6}, []string{"7", "7", "7"}, 8.8, -9)
+	fmt.Println(slice)
+	slice.Delete(-1)
+	fmt.Println(slice)
+	slice.Delete(2)
+	fmt.Println(slice)
+	slice.Delete(1000)
+	fmt.Println(slice)
+}
+
+func TestPushPop(t *testing.T) {
+	ori := New[any](1, 2, 3).Push(4).Push(5.5).Push("안녕").UnShift("hello")
+
+	fmt.Println(ori)
+	fmt.Println("pop :", ori.Pop())
+	fmt.Println("shift :", ori.Shift())
+	fmt.Println("pop :", ori.Pop())
+	fmt.Println("shift :", ori.Shift())
+	fmt.Println("pop :", ori.Pop())
+	fmt.Println("shift :", ori.Shift())
+	fmt.Println("pop :", ori.Pop())
+	fmt.Println("shift :", ori.Shift())
+	fmt.Println("pop :", ori.Pop())
+	fmt.Println("shift :", ori.Shift())
+	fmt.Println("pop :", ori.Pop())
 }
 
 func TestSlice(t *testing.T) {
 	slice := New[any](1, 2, 3, "4", 5.5, []byte{6, 6, 6}, []string{"7", "7", "7"}, 8.8, -9)
-	fmt.Println(slice.Slice(0, 0))
+	fmt.Println(slice.Slice(2, 0))
 	fmt.Println(slice.Slice(1, 8))
 	fmt.Println(slice.Slice(1, -2))
 	fmt.Println(slice.Splice(1, 3))
@@ -62,6 +86,14 @@ func TestRotate(t *testing.T) {
 	fmt.Println(ori.Rotate(-3))
 	fmt.Println(ori.Shuffle())
 	fmt.Println(ori.Reverse())
+}
+
+func TestSplit(t *testing.T) {
+	ori := New[any](1, "2", 3, 4, 5, 6, 7, 8, 9)
+	split := ori.Split(1, 2, 3, 4)
+	fmt.Println(split)
+	split = ori.Split(1, 1, 1, 0, 0, 0)
+	fmt.Println(split)
 }
 
 func TestBatch(t *testing.T) {
