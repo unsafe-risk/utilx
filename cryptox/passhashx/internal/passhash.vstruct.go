@@ -25,6 +25,7 @@ const (
 	Parameter_Argon2ID_Low         Parameter = 1
 	Parameter_Argon2ID_Mobile_High Parameter = 2
 	Parameter_Argon2ID_Mobile_Low  Parameter = 3
+	VSTRUCT_ENUM_Parameter_MAX               = 3
 )
 
 func (e Parameter) String() string {
@@ -76,6 +77,15 @@ func (e Parameter) MatchS(s struct {
 		s.onArgon2ID_Mobile_Low()
 	}
 }
+
+var _ struct{} = func() struct{} {
+	var _v [1]struct{}
+	_v[Parameter_Argon2ID_High-0] = struct{}{}
+	_v[Parameter_Argon2ID_Low-1] = struct{}{}
+	_v[Parameter_Argon2ID_Mobile_High-2] = struct{}{}
+	_v[Parameter_Argon2ID_Mobile_Low-3] = struct{}{}
+	return struct{}{}
+}()
 
 type PasswordHash []byte
 
