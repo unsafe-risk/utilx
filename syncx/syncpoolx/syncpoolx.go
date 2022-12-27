@@ -1,4 +1,4 @@
-package poolx
+package syncpoolx
 
 import "sync"
 
