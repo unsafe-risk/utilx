@@ -10,6 +10,7 @@ func TestCopy(t *testing.T) {
 	for _, test := range []struct {
 		slices []any
 	}{
+		{[]any{}},
 		{[]any{nil}},
 		{[]any{1, 2, 3}},
 		{[]any{1, "2", 3.2, []int{1, 2}, []string{"a", "b"}}},
@@ -25,31 +26,36 @@ func TestSetGet(t *testing.T) {
 		sliceLen int
 		idxs     []int
 		vals     []any
+		expects  []any
 	}{
-		{1, []int{0}, []any{1}},
-		{3, []int{0, 1, 2}, []any{1, 2, 3}},
-		{5, []int{0, 1, 2, 3, 4}, []any{1, "2", 3.2, []int{1, 2}, []string{"a", "b"}}},
+		{1, []int{0}, []any{1}, []any{1}},
+		{3, []int{0, 1, 2}, []any{1, 2, 3}, []any{1, 2, 3}},
+		{5, []int{0, 1, 2, 3, 4}, []any{1, "2", 3.2, []int{1, 2}, []string{"a", "b"}}, []any{1, "2", 3.2, []int{1, 2}, []string{"a", "b"}}},
+		{10, []int{0, 2, 4, 6, 8}, []any{1, 2, 3, 4, 5}, []any{1, nil, 2, nil, 3, nil, 4, nil, 5, nil}},
 
 		// index exception
-		{2, []int{-1, 6}, []any{1, 2}},
+		{4, []int{-1, 6}, []any{1, 2}, []any{1, nil, nil, 2}},
 	} {
-		slice := New[any]()
-		slice.Extend(test.sliceLen)
+		ori := New[any]()
+		ori.Extend(test.sliceLen)
 		for i, idx := range test.idxs {
-			slice.Set(idx, test.vals[i])
+			ori.Set(idx, test.vals[i])
 		}
 		for i, idx := range test.idxs {
-			require.Equal(t, test.vals[i], slice.Get(idx))
+			require.Equal(t, test.vals[i], ori.Get(idx))
 		}
+
+		exp := New(test.expects...)
+		require.Equal(t, exp, ori)
 	}
 }
 
 func TestSlice(t *testing.T) {
 	for _, test := range []struct {
-		ori        []any
-		sliceStart int
-		sliceEnd   int
-		expect     []any
+		ori      []any
+		idxStart int
+		idxEnd   int
+		expect   []any
 	}{
 		{[]any{0, 1, 2}, 0, 0, []any{}},
 		{[]any{0, 1, 2}, 0, 1, []any{0}},
@@ -58,6 +64,8 @@ func TestSlice(t *testing.T) {
 		{[]any{0, 1, 2}, 1, 3, []any{1, 2}},
 		{[]any{0, 1, 2}, 2, 3, []any{2}},
 		{[]any{0, 1, 2}, 3, 3, []any{}},
+
+		{[]any{}, 0, 1, []any{}},
 
 		// minus index
 		{[]any{0, 1, 2}, 0, -1, []any{0, 1}},
@@ -69,7 +77,7 @@ func TestSlice(t *testing.T) {
 		{[]any{0, 1, 2}, -100, -1, []any{0, 1}},
 		{[]any{0, 1, 2}, -100, -3, []any{}},
 	} {
-		ori := New(test.ori...).Slice(test.sliceStart, test.sliceEnd)
+		ori := New(test.ori...).Slice(test.idxStart, test.idxEnd)
 		exp := New(test.expect...)
 		require.Equal(t, exp, ori)
 	}
@@ -77,12 +85,13 @@ func TestSlice(t *testing.T) {
 
 func TestSplice(t *testing.T) {
 	for _, test := range []struct {
-		ori         []any
-		spliceStart int
-		spliceEnd   int
-		spliceVals  []any
-		expect      []any
+		ori      []any
+		idxStart int
+		idxEnd   int
+		vals     []any
+		expect   []any
 	}{
+		{[]any{0, 1, 2}, 0, 0, nil, []any{0, 1, 2}},
 		{[]any{0, 1, 2}, 0, 0, []any{}, []any{0, 1, 2}},
 		{[]any{0, 1, 2}, 0, 1, []any{3}, []any{3, 1, 2}},
 		{[]any{0, 1, 2}, 0, 2, []any{3, 4}, []any{3, 4, 2}},
@@ -93,19 +102,21 @@ func TestSplice(t *testing.T) {
 		{[]any{0, 1, 2}, 2, 3, []any{4, 5}, []any{0, 1, 4, 5}},
 		{[]any{0, 1, 2}, 3, 3, []any{4}, []any{0, 1, 2, 4}},
 
+		{[]any{1, 2, 3}, 0, 1, []any{}, []any{2, 3}},
+		{[]any{}, 0, 1, []any{3, 4, 5}, []any{3, 4, 5}},
+		{[]any{}, 0, 1, []any{}, []any{}},
+
 		// index exception
 		{[]any{0, 1, 2}, 0, 100, []any{3, 4, 5}, []any{3, 4, 5}},
 		{[]any{0, 1, 2}, -100, 3, []any{3, 4, 5}, []any{3, 4, 5}},
 	} {
 		ori := New(test.ori...)
-		ori.Splice(test.spliceStart, test.spliceEnd, test.spliceVals...)
+		ori.Splice(test.idxStart, test.idxEnd, test.vals...)
 		exp := New(test.expect...)
 		require.Equal(t, exp, ori)
 	}
 }
 
-// TODO
-/*
 func TestInsert(t *testing.T) {
 	for _, test := range []struct {
 		ori    []any
@@ -123,7 +134,7 @@ func TestInsert(t *testing.T) {
 		{[]any{1, 2, 3}, 3, []any{4, 5, 6}, []any{1, 2, 3, 4, 5, 6}},
 
 		{[]any{1, 2, 3}, 3, nil, []any{1, 2, 3}},
-		{nil, 3, []any{4, 5, 6}, []any{1, 2, 3}},
+		{nil, 3, []any{4, 5, 6}, []any{4, 5, 6}},
 
 		// index exception
 		{[]any{1, 2, 3}, -100, []any{0}, []any{0, 1, 2, 3}},
@@ -135,100 +146,232 @@ func TestInsert(t *testing.T) {
 	}
 }
 
-func TestDelete(t *testing.T) {
-	slice := New[any](1, 2, 3, "4", 5.5, []byte{6, 6, 6}, []string{"7", "7", "7"}, 8.8, -9)
-	fmt.Println(slice)
-	slice.Delete(-1)
-	fmt.Println(slice)
-	slice.Delete(2)
-	fmt.Println(slice)
-	slice.Delete(1000)
-	fmt.Println(slice)
+func TestCut(t *testing.T) {
+	for _, test := range []struct {
+		ori      []any
+		idxStart int
+		idxEnd   int
+		expect   []any
+	}{
+		{[]any{1, 2, 3}, 0, 0, []any{1, 2, 3}},
+		{[]any{1, 2, 3}, 0, 1, []any{2, 3}},
+		{[]any{1, 2, 3}, 0, 2, []any{3}},
+		{[]any{1, 2, 3}, 0, 3, []any{}},
+		{[]any{1, 2, 3}, 1, 1, []any{1, 2, 3}},
+		{[]any{1, 2, 3}, 1, 2, []any{1, 3}},
+		{[]any{1, 2, 3}, 1, 3, []any{1}},
+		{[]any{1, 2, 3}, 2, 2, []any{1, 2, 3}},
+		{[]any{1, 2, 3}, 2, 3, []any{1, 2}},
+		{[]any{1, 2, 3}, 3, 3, []any{1, 2, 3}},
+
+		{[]any{}, 0, 1, []any{}},
+
+		// index exception
+		{[]any{1, 2, 3}, 0, 100, []any{}},
+		{[]any{1, 2, 3}, -100, 3, []any{}},
+	} {
+		ori := New(test.ori...).Cut(test.idxStart, test.idxEnd)
+		exp := New(test.expect...)
+		require.Equal(t, exp, ori)
+	}
 }
 
-func TestPushPop(t *testing.T) {
-	ori := New[any](1, 2, 3).Push(4).Push(5.5).Push("안녕").UnShift("hello")
+func TestDelete(t *testing.T) {
+	for _, test := range []struct {
+		ori    []any
+		idx    int
+		expect []any
+	}{
+		{[]any{1, 2, 3}, 0, []any{2, 3}},
+		{[]any{1, 2, 3}, 1, []any{1, 3}},
+		{[]any{1, 2, 3}, 2, []any{1, 2}},
 
-	fmt.Println(ori)
-	fmt.Println("pop :", ori.Pop())
-	fmt.Println("shift :", ori.Shift())
-	fmt.Println("pop :", ori.Pop())
-	fmt.Println("shift :", ori.Shift())
-	fmt.Println("pop :", ori.Pop())
-	fmt.Println("shift :", ori.Shift())
-	fmt.Println("pop :", ori.Pop())
-	fmt.Println("shift :", ori.Shift())
-	fmt.Println("pop :", ori.Pop())
-	fmt.Println("shift :", ori.Shift())
-	fmt.Println("pop :", ori.Pop())
+		{[]any{}, 1, []any{}},
+
+		// index exception
+		{[]any{1, 2, 3}, -100, []any{1, 2, 3}},
+		{[]any{1, 2, 3}, 100, []any{1, 2, 3}},
+	} {
+		ori := New(test.ori...).Delete(test.idx)
+		exp := New(test.expect...)
+		require.Equal(t, exp, ori)
+	}
+}
+
+func TestPush(t *testing.T) {
+	for _, test := range []struct {
+		ori    []any
+		val    any
+		expect []any
+	}{
+		{[]any{1, 2, 3}, 4, []any{1, 2, 3, 4}},
+		{[]any{}, 4, []any{4}},
+		{nil, 4, []any{4}},
+	} {
+		ori := New(test.ori...).Push(test.val)
+		exp := New(test.expect...)
+		require.Equal(t, exp, ori)
+	}
+}
+
+func TestPop(t *testing.T) {
+	for _, test := range []struct {
+		ori       []any
+		expect    []any
+		expectPop any
+	}{
+		{[]any{1, 2, 3}, []any{1, 2}, 3},
+		{[]any{1}, []any{}, 1},
+		{[]any{}, []any{}, nil},
+		{nil, nil, any(nil)},
+	} {
+		ori := New(test.ori...)
+		pop := ori.Pop()
+		exp := New(test.expect...)
+		require.Equal(t, exp, ori)
+		require.Equal(t, test.expectPop, pop)
+	}
+}
+
+func TestUnshift(t *testing.T) {
+	for _, test := range []struct {
+		ori    []any
+		val    any
+		expect []any
+	}{
+		{[]any{1, 2, 3}, 4, []any{4, 1, 2, 3}},
+		{[]any{}, 4, []any{4}},
+		{nil, 4, []any{4}},
+	} {
+		ori := New(test.ori...).UnShift(test.val)
+		exp := New(test.expect...)
+		require.Equal(t, exp, ori)
+	}
+}
+
+func TestShift(t *testing.T) {
+	for _, test := range []struct {
+		ori         []any
+		expect      []any
+		expectShift any
+	}{
+		{[]any{1, 2, 3}, []any{2, 3}, 1},
+		{[]any{1}, []any{}, 1},
+		{[]any{}, []any{}, nil},
+		{nil, nil, any(nil)},
+	} {
+		ori := New(test.ori...)
+		pop := ori.Shift()
+		exp := New(test.expect...)
+		require.Equal(t, exp, ori)
+		require.Equal(t, test.expectShift, pop)
+	}
+}
+
+func TestReverse(t *testing.T) {
+	for _, test := range []struct {
+		ori    []any
+		expect []any
+	}{
+		{[]any{1, 2, 3}, []any{3, 2, 1}},
+		{[]any{1, 2, 3, 4}, []any{4, 3, 2, 1}},
+
+		{[]any{1}, []any{1}},
+		{[]any{}, []any{}},
+	} {
+		ori := New(test.ori...).Reverse()
+		exp := New(test.expect...)
+		require.Equal(t, exp, ori)
+	}
 }
 
 func TestRotate(t *testing.T) {
-	ori := New[any](1, "2", 3, 4, 5, 6, 7, 8, 9)
+	for _, test := range []struct {
+		ori    []any
+		rotate int
+		expect []any
+	}{
+		{[]any{1, 2, 3}, 0, []any{1, 2, 3}},
+		{[]any{1, 2, 3}, 1, []any{2, 3, 1}},
+		{[]any{1, 2, 3}, 2, []any{3, 1, 2}},
+		{[]any{1, 2, 3}, 3, []any{1, 2, 3}},
+		{[]any{1, 2, 3}, 4, []any{2, 3, 1}},
 
-	fmt.Println(ori.Rotate(0))
-	fmt.Println(ori.Rotate(9))
-	fmt.Println(ori.Rotate(3))
-	fmt.Println(ori.Rotate(-3))
-	fmt.Println(ori.Rotate(-3))
-	fmt.Println(ori.Shuffle())
-	fmt.Println(ori.Reverse())
+		{[]any{1, 2, 3}, -1, []any{3, 1, 2}},
+		{[]any{1, 2, 3}, -2, []any{2, 3, 1}},
+		{[]any{1, 2, 3}, -3, []any{1, 2, 3}},
+		{[]any{1, 2, 3}, -4, []any{3, 1, 2}},
+
+		{[]any{1}, 1, []any{1}},
+		{[]any{}, 1, []any{}},
+	} {
+		ori := New(test.ori...).Rotate(test.rotate)
+		exp := New(test.expect...)
+		require.Equal(t, exp, ori)
+	}
 }
 
 func TestSplit(t *testing.T) {
-	ori := New[any](1, "2", 3, 4, 5, 6, 7, 8, 9)
-	split := ori.Split(1, 2, 3, 4)
-	fmt.Println(split)
-	split = ori.Split(1, 1, 1, 0, 0, 0, -3)
-	fmt.Println(split)
+	for _, test := range []struct {
+		ori    []any
+		idxs   []int
+		expect [][]any
+	}{
+		{[]any{1, 2, 3}, []int{1}, [][]any{{1}, {2, 3}}},
+		{[]any{1, 2, 3}, []int{2}, [][]any{{1, 2}, {3}}},
+		{[]any{1, 2, 3}, []int{3}, [][]any{{1, 2, 3}}},
+
+		{[]any{1, 2, 3}, []int{}, [][]any{{1, 2, 3}}},
+		{[]any{1, 2, 3}, []int{0}, [][]any{{}, {1, 2, 3}}},
+		{[]any{1, 2, 3}, []int{0, 1}, [][]any{{}, {1}, {2, 3}}},
+
+		{[]any{1, 2, 3}, []int{1, 1}, [][]any{{1}, {2}, {3}}},
+		{[]any{1, 2, 3}, []int{1, 2}, [][]any{{1}, {2, 3}}},
+		{[]any{1, 2, 3}, []int{2}, [][]any{{1, 2}, {3}}},
+		{[]any{1, 2, 3}, []int{3}, [][]any{{1, 2, 3}}},
+
+		// minus index
+		{[]any{1, 2, 3}, []int{1, -1}, [][]any{{1}, {1}, {1, 2, 3}}},
+		{[]any{1, 2, 3}, []int{2, -2}, [][]any{{1, 2}, {1, 2}, {1, 2, 3}}},
+		{[]any{1, 2, 3}, []int{3, -3}, [][]any{{1, 2, 3}, {1, 2, 3}, {1, 2, 3}}},
+
+		// index exception
+		{[]any{1, 2, 3}, []int{-100}, [][]any{{}, {1, 2, 3}}},
+		{[]any{1, 2, 3}, []int{100, -100}, [][]any{{1, 2, 3}, {1, 2, 3}, {1, 2, 3}}},
+		{[]any{1, 2, 3}, []int{-100, 100, -100}, [][]any{{}, {1, 2, 3}, {1, 2, 3}, {1, 2, 3}}},
+	} {
+		oris := New(test.ori...).Split(test.idxs...)
+		exps := make([]Slice[any], len(test.expect))
+		for i, exp := range test.expect {
+			exps[i] = exp
+		}
+
+		require.Equal(t, exps, oris)
+	}
 }
 
 func TestBatch(t *testing.T) {
-	ori := New[any](1, "2", 3, 4, 5, 6, 7, 8, 9)
+	for _, test := range []struct {
+		ori    []any
+		size   int
+		expect [][]any
+	}{
+		{[]any{1, 2, 3, 4, 5}, 1, [][]any{{1}, {2}, {3}, {4}, {5}}},
+		{[]any{1, 2, 3, 4, 5}, 2, [][]any{{1, 2}, {3, 4}, {5}}},
+		{[]any{1, 2, 3, 4, 5}, 3, [][]any{{1, 2, 3}, {4, 5}}},
+		{[]any{1, 2, 3, 4, 5}, 4, [][]any{{1, 2, 3, 4}, {5}}},
+		{[]any{1, 2, 3, 4, 5}, 5, [][]any{{1, 2, 3, 4, 5}}},
 
-	batch := ori.Batch(-1)
-	fmt.Println(batch)
-
-	batch = ori.Batch(1)
-	fmt.Println(batch)
-
-	batch = ori.Batch(3)
-	fmt.Println(batch)
-
-	batch = ori.Batch(4)
-	fmt.Println(batch)
-
-	batch = ori.Batch(5)
-	fmt.Println(batch)
-
-	batch = ori.Batch(10000000000000000)
-	fmt.Println(batch)
+		// index exception
+		{[]any{1, 2, 3, 4, 5}, -1, [][]any{{1}, {2}, {3}, {4}, {5}}},
+		{[]any{1, 2, 3, 4, 5}, 0, [][]any{{1}, {2}, {3}, {4}, {5}}},
+		{[]any{1, 2, 3, 4, 5}, 100, [][]any{{1, 2, 3, 4, 5}}},
+	} {
+		oris := New(test.ori...).Batch(test.size)
+		exps := make([]Slice[any], len(test.expect))
+		for i, exp := range test.expect {
+			exps[i] = exp
+		}
+		require.Equal(t, exps, oris)
+	}
 }
-
-func TestCap(t *testing.T) {
-	a := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
-	a1 := a[0:1]
-
-	a = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
-	a3 := a[2:4]
-
-	a = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
-	a9 := a[0:9]
-
-	a = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
-	a11 := a[0:1:1]
-
-	a = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
-	a33 := a[0:3:3]
-
-	a = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
-	a35 := a[0:3:5]
-
-	fmt.Println(a1, cap(a1))
-	fmt.Println(a3, cap(a3))
-	fmt.Println(a9, cap(a9))
-	fmt.Println(a11, cap(a11))
-	fmt.Println(a33, cap(a33))
-	fmt.Println(a35, cap(a35))
-}
-*/
