@@ -108,6 +108,10 @@ func (s *Slice[T]) Reverse() *Slice[T] {
 }
 
 func (s *Slice[T]) Rotate(n int) *Slice[T] {
+	if len(*s) == 0 {
+		return s
+	}
+
 	if n > 0 {
 		index := n % len(*s)
 		*s = append((*s)[index:], (*s)[:index]...)
@@ -137,24 +141,15 @@ func (s *Slice[T]) Filter(f func(T) bool) *Slice[T] {
 	return s
 }
 
-func (s Slice[T]) Batch(size int) []Slice[T] {
-	if size <= 0 {
-		size = 1
-	}
-	splits := make([]int, (len(s)+1)/size)
-	for i := 0; i < len(splits); i++ {
-		splits[i] = size
-	}
-	return s.Split(splits...)
-}
-
 func (s Slice[T]) Split(splits ...int) []Slice[T] {
 	var r []Slice[T] = make([]Slice[T], 0, len(splits)+1)
 	var end int
 	for i := 0; i < len(splits); i++ {
-		endNext := end + splits[i]
-		if endNext > len(s) {
-			break
+		var endNext = end + splits[i]
+		if endNext < 0 {
+			endNext = 0
+		} else if endNext > len(s) {
+			endNext = len(s)
 		}
 		if endNext < end {
 			r = append(r, s[endNext:end])
@@ -167,6 +162,17 @@ func (s Slice[T]) Split(splits ...int) []Slice[T] {
 		r = append(r, s[end:])
 	}
 	return r
+}
+
+func (s Slice[T]) Batch(size int) []Slice[T] {
+	if size <= 0 {
+		size = 1
+	}
+	splits := make([]int, (len(s))/size)
+	for i := 0; i < len(splits); i++ {
+		splits[i] = size
+	}
+	return s.Split(splits...)
 }
 
 func (s Slice[T]) Join(sep string) string {
