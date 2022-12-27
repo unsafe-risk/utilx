@@ -1,55 +1,166 @@
 package slicex
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
 func TestCopy(t *testing.T) {
-	fn_test := func(s ...any) {
-		ori := New[any](s)
+	for _, test := range []struct {
+		slices []any
+	}{
+		{[]any{nil}},
+		{[]any{1, 2, 3}},
+		{[]any{1, "2", 3.2, []int{1, 2}, []string{"a", "b"}}},
+	} {
+		ori := New(test.slices...)
 		cpy := ori.Copy()
-		fmt.Println(cpy.Join(", "))
 		require.Equal(t, ori, cpy)
 	}
-
-	fn_test()
-	fn_test(nil)
-	fn_test(1, 2, 3)
-	fn_test(1, "2", 3.2, []int{1, 2}, []string{"a", "b"})
 }
 
-func TestPushPop(t *testing.T) {
-	ori := New[any](1, "2", 3).Push(1).Push(2.2).Push("안녕").UnShift("hello")
+func TestSetGet(t *testing.T) {
+	for _, test := range []struct {
+		sliceLen int
+		idxs     []int
+		vals     []any
+	}{
+		{1, []int{0}, []any{1}},
+		{3, []int{0, 1, 2}, []any{1, 2, 3}},
+		{5, []int{0, 1, 2, 3, 4}, []any{1, "2", 3.2, []int{1, 2}, []string{"a", "b"}}},
 
-	fmt.Println(ori.Pop())
-	fmt.Println(ori.Shift())
-	fmt.Println(ori.Pop())
-	fmt.Println(ori.Shift())
-	fmt.Println(ori.Pop())
-	fmt.Println(ori.Shift())
-	fmt.Println(ori.Pop())
-	fmt.Println(ori.Shift())
-	fmt.Println(ori.Pop())
-	fmt.Println(ori.Shift())
-	fmt.Println(ori.Pop())
+		// index exception
+		{2, []int{-1, 6}, []any{1, 2}},
+	} {
+		slice := New[any]()
+		slice.Extend(test.sliceLen)
+		for i, idx := range test.idxs {
+			slice.Set(idx, test.vals[i])
+		}
+		for i, idx := range test.idxs {
+			require.Equal(t, test.vals[i], slice.Get(idx))
+		}
+	}
 }
 
 func TestSlice(t *testing.T) {
-	slice := New[any](1, 2, 3, "4", 5.5, []byte{6, 6, 6}, []string{"7", "7", "7"}, 8.8, -9)
-	fmt.Println(slice.Slice(0, 0))
-	fmt.Println(slice.Slice(1, 8))
-	fmt.Println(slice.Slice(1, -2))
-	fmt.Println(slice.Splice(1, 3))
+	for _, test := range []struct {
+		ori        []any
+		sliceStart int
+		sliceEnd   int
+		expect     []any
+	}{
+		{[]any{0, 1, 2}, 0, 0, []any{}},
+		{[]any{0, 1, 2}, 0, 1, []any{0}},
+		{[]any{0, 1, 2}, 0, 2, []any{0, 1}},
+		{[]any{0, 1, 2}, 0, 3, []any{0, 1, 2}},
+		{[]any{0, 1, 2}, 1, 3, []any{1, 2}},
+		{[]any{0, 1, 2}, 2, 3, []any{2}},
+		{[]any{0, 1, 2}, 3, 3, []any{}},
+
+		// minus index
+		{[]any{0, 1, 2}, 0, -1, []any{0, 1}},
+		{[]any{0, 1, 2}, 0, -2, []any{0}},
+
+		// index exception
+		{[]any{0, 1, 2}, 0, 100, []any{0, 1, 2}},
+		{[]any{0, 1, 2}, -100, 3, []any{0, 1, 2}},
+		{[]any{0, 1, 2}, -100, -1, []any{0, 1}},
+		{[]any{0, 1, 2}, -100, -3, []any{}},
+	} {
+		ori := New(test.ori...).Slice(test.sliceStart, test.sliceEnd)
+		exp := New(test.expect...)
+		require.Equal(t, exp, ori)
+	}
 }
 
 func TestSplice(t *testing.T) {
-	ori := New[any](1, "2", 3, 4, 5, 6, 7, 8, 9)
+	for _, test := range []struct {
+		ori         []any
+		spliceStart int
+		spliceEnd   int
+		spliceVals  []any
+		expect      []any
+	}{
+		{[]any{0, 1, 2}, 0, 0, []any{}, []any{0, 1, 2}},
+		{[]any{0, 1, 2}, 0, 1, []any{3}, []any{3, 1, 2}},
+		{[]any{0, 1, 2}, 0, 2, []any{3, 4}, []any{3, 4, 2}},
+		{[]any{0, 1, 2}, 0, 3, []any{3, 4, 5}, []any{3, 4, 5}},
+		{[]any{0, 1, 2}, 1, 1, []any{3}, []any{0, 3, 1, 2}},
+		{[]any{0, 1, 2}, 1, 2, []any{3, 4}, []any{0, 3, 4, 2}},
+		{[]any{0, 1, 2}, 1, 3, []any{3, 4, 5}, []any{0, 3, 4, 5}},
+		{[]any{0, 1, 2}, 2, 3, []any{4, 5}, []any{0, 1, 4, 5}},
+		{[]any{0, 1, 2}, 3, 3, []any{4}, []any{0, 1, 2, 4}},
 
-	fmt.Println(ori.Splice(-1, 100, 100, 99, 98))
-	fmt.Println(ori.Splice(2, 4, 97, 96, 95))
+		// index exception
+		{[]any{0, 1, 2}, 0, 100, []any{3, 4, 5}, []any{3, 4, 5}},
+		{[]any{0, 1, 2}, -100, 3, []any{3, 4, 5}, []any{3, 4, 5}},
+	} {
+		ori := New(test.ori...)
+		ori.Splice(test.spliceStart, test.spliceEnd, test.spliceVals...)
+		exp := New(test.expect...)
+		require.Equal(t, exp, ori)
+	}
+}
+
+// TODO
+/*
+func TestInsert(t *testing.T) {
+	for _, test := range []struct {
+		ori    []any
+		idx    int
+		vals   []any
+		expect []any
+	}{
+		{[]any{1, 2, 3}, 0, []any{0}, []any{0, 1, 2, 3}},
+		{[]any{1, 2, 3}, 1, []any{0}, []any{1, 0, 2, 3}},
+		{[]any{1, 2, 3}, 2, []any{0}, []any{1, 2, 0, 3}},
+		{[]any{1, 2, 3}, 3, []any{0}, []any{1, 2, 3, 0}},
+		{[]any{1, 2, 3}, 0, []any{4, 5, 6}, []any{4, 5, 6, 1, 2, 3}},
+		{[]any{1, 2, 3}, 1, []any{4, 5, 6}, []any{1, 4, 5, 6, 2, 3}},
+		{[]any{1, 2, 3}, 2, []any{4, 5, 6}, []any{1, 2, 4, 5, 6, 3}},
+		{[]any{1, 2, 3}, 3, []any{4, 5, 6}, []any{1, 2, 3, 4, 5, 6}},
+
+		{[]any{1, 2, 3}, 3, nil, []any{1, 2, 3}},
+		{nil, 3, []any{4, 5, 6}, []any{1, 2, 3}},
+
+		// index exception
+		{[]any{1, 2, 3}, -100, []any{0}, []any{0, 1, 2, 3}},
+		{[]any{1, 2, 3}, 100, []any{0}, []any{1, 2, 3, 0}},
+	} {
+		ori := New(test.ori...).Insert(test.idx, test.vals...)
+		exp := New(test.expect...)
+		require.Equal(t, exp, ori)
+	}
+}
+
+func TestDelete(t *testing.T) {
+	slice := New[any](1, 2, 3, "4", 5.5, []byte{6, 6, 6}, []string{"7", "7", "7"}, 8.8, -9)
+	fmt.Println(slice)
+	slice.Delete(-1)
+	fmt.Println(slice)
+	slice.Delete(2)
+	fmt.Println(slice)
+	slice.Delete(1000)
+	fmt.Println(slice)
+}
+
+func TestPushPop(t *testing.T) {
+	ori := New[any](1, 2, 3).Push(4).Push(5.5).Push("안녕").UnShift("hello")
+
+	fmt.Println(ori)
+	fmt.Println("pop :", ori.Pop())
+	fmt.Println("shift :", ori.Shift())
+	fmt.Println("pop :", ori.Pop())
+	fmt.Println("shift :", ori.Shift())
+	fmt.Println("pop :", ori.Pop())
+	fmt.Println("shift :", ori.Shift())
+	fmt.Println("pop :", ori.Pop())
+	fmt.Println("shift :", ori.Shift())
+	fmt.Println("pop :", ori.Pop())
+	fmt.Println("shift :", ori.Shift())
+	fmt.Println("pop :", ori.Pop())
 }
 
 func TestRotate(t *testing.T) {
@@ -62,6 +173,14 @@ func TestRotate(t *testing.T) {
 	fmt.Println(ori.Rotate(-3))
 	fmt.Println(ori.Shuffle())
 	fmt.Println(ori.Reverse())
+}
+
+func TestSplit(t *testing.T) {
+	ori := New[any](1, "2", 3, 4, 5, 6, 7, 8, 9)
+	split := ori.Split(1, 2, 3, 4)
+	fmt.Println(split)
+	split = ori.Split(1, 1, 1, 0, 0, 0, -3)
+	fmt.Println(split)
 }
 
 func TestBatch(t *testing.T) {
@@ -112,3 +231,4 @@ func TestCap(t *testing.T) {
 	fmt.Println(a33, cap(a33))
 	fmt.Println(a35, cap(a35))
 }
+*/
