@@ -28,7 +28,7 @@ const (
 	SecurityLevelMobileLow  SecurityLevel = 4
 )
 
-const internal_Parameter_MAX = 4
+const internal_Parameter_MAX = internal.VSTRUCT_ENUM_Parameter_MAX + 1
 
 var salt_len_arr = [internal_Parameter_MAX]uint8{
 	internal.Parameter_Argon2ID_High:        16,
