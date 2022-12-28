@@ -33,8 +33,9 @@ func (s *Slice[T]) Clear() *Slice[T] {
 	return s
 }
 
-func (s *Slice[T]) Extend(len int) *Slice[T] {
-	*s = append(*s, make([]T, len)...)
+func (s *Slice[T]) Extend(size int) *Slice[T] {
+	preprocIndexException(&size, nil, len(*s))
+	*s = append(*s, make([]T, size)...)
 	return s
 }
 
@@ -228,6 +229,7 @@ func (s Slice[T]) ForEach(f func(int, T)) {
 func (s Slice[T]) Len() int {
 	return len(s)
 }
+
 func (s Slice[T]) Finalize() []T {
 	return s
 }
