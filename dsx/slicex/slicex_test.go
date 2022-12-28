@@ -72,6 +72,7 @@ func TestSlice(t *testing.T) {
 		{[]any{0, 1, 2}, 0, -2, []any{0}},
 
 		// index exception
+		{[]any{0, 1, 2}, 1, 0, []any{0}},
 		{[]any{0, 1, 2}, 0, 100, []any{0, 1, 2}},
 		{[]any{0, 1, 2}, -100, 3, []any{0, 1, 2}},
 		{[]any{0, 1, 2}, -100, -1, []any{0, 1}},
@@ -107,6 +108,7 @@ func TestSplice(t *testing.T) {
 		{[]any{}, 0, 1, []any{}, []any{}},
 
 		// index exception
+		{[]any{0, 1, 2}, 1, 0, []any{3}, []any{3, 1, 2}},
 		{[]any{0, 1, 2}, 0, 100, []any{3, 4, 5}, []any{3, 4, 5}},
 		{[]any{0, 1, 2}, -100, 3, []any{3, 4, 5}, []any{3, 4, 5}},
 	} {
@@ -191,6 +193,7 @@ func TestCut(t *testing.T) {
 		{[]any{}, 0, 1, []any{}},
 
 		// index exception
+		{[]any{1, 2, 3}, 1, 0, []any{2, 3}},
 		{[]any{1, 2, 3}, 0, 100, []any{}},
 		{[]any{1, 2, 3}, -100, 3, []any{}},
 	} {
