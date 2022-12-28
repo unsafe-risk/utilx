@@ -8,18 +8,18 @@ var _ = (dsx.Queue[int])(&Ring[int]{})
 
 type Ring[T any] struct {
 	data []T
-	cap  int64
-	head int64
-	tail int64
+	cap  int
+	head int
+	tail int
 }
 
-func New[T any](cap int64) *Ring[T] {
+func New[T any](cap int) *Ring[T] {
 	if cap == 0 {
 		return nil
 	}
 	return &Ring[T]{
 		data: make([]T, cap),
-		cap:  cap,
+		cap:  cap + 1,
 		head: 0,
 		tail: 0,
 	}
@@ -47,8 +47,8 @@ func (r *Ring[T]) Head() T {
 	return r.data[r.head]
 }
 
-func (r *Ring[T]) Cap() int64 {
-	return r.cap
+func (r *Ring[T]) Cap() int {
+	return r.cap - 1
 }
 
 func (r *Ring[T]) IsEmpty() bool {
