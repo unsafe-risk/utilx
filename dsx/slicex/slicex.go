@@ -14,13 +14,21 @@ func New[T any](v ...T) *Slice[T] {
 
 // TODO: 입력값이 인덱스 범위를 넘어갔을 때 처리 정책 정하기
 func (s *Slice[T]) Set(i int, v T) {
+	if len(*s) == 0 {
+		return
+	}
 	preprocIndexException(&i, nil, len(*s)-1)
 	(*s)[i] = v
 }
 
 func (s *Slice[T]) Get(i int) T {
+	var v T
+	if len(*s) == 0 {
+		return v
+	}
 	preprocIndexException(&i, nil, len(*s)-1)
-	return (*s)[i]
+	v = (*s)[i]
+	return v
 }
 
 func (s *Slice[T]) Copy() *Slice[T] {
@@ -34,7 +42,7 @@ func (s *Slice[T]) Clear() *Slice[T] {
 }
 
 func (s *Slice[T]) Extend(size int) *Slice[T] {
-	preprocIndexException(&size, nil, len(*s))
+	preprocIndexException(&size, nil, size)
 	*s = append(*s, make([]T, size)...)
 	return s
 }
@@ -243,10 +251,11 @@ func preprocIndexException(i, j *int, len int) {
 	}
 
 	if j != nil {
+		if *j > len {
+			*j = len
+		}
 		if *j < 0 {
 			*j = 0
-		} else if *j > len {
-			*j = len
 		}
 		if *i > *j {
 			*i, *j = *j, *i
