@@ -10,6 +10,8 @@ type Decoupler struct {
 	_      [15]uint64
 	_write uint64
 	_      [15]uint64
+	_len   uint64
+	_      [15]uint64
 
 	size    uint64
 	locktab []uint64
@@ -59,26 +61,23 @@ func (d *Decoupler) Write(b []byte) (int, error) {
 			}
 			d.buffer[idx] = append(d.buffer[idx][:0], b...)
 			atomic.StoreUint64(&d.locktab[idx], ts)
+			atomic.AddUint64(&d._len, 1)
 			return len(b), nil
 		}
 
 		if lock != busy {
-			r := atomic.LoadUint64(&d._read)
-			if ts-r >= d.size {
-				if lock < ts {
-					return d.drop(b)
-				}
+			if atomic.LoadUint64(&d._len) == d.size {
+				return d.drop(b)
 			}
 		}
 	}
 }
 
 func (d *Decoupler) Next(view func([]byte)) bool {
-	w := atomic.LoadUint64(&d._write)
-	r := atomic.LoadUint64(&d._read)
-	if w <= r {
+	if atomic.LoadUint64(&d._len) == 0 {
 		return false
 	}
+	r := d._read
 	idx := r % d.size
 
 	var lock uint64
@@ -95,7 +94,8 @@ func (d *Decoupler) Next(view func([]byte)) bool {
 		view(d.buffer[idx])
 	}
 	atomic.StoreUint64(&d.locktab[idx], empty)
-	atomic.AddUint64(&d._read, 1)
+	atomic.AddUint64(&d._len, ^uint64(0))
+	d._read++
 
 	return true
 }
